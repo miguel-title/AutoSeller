@@ -1,0 +1,128 @@
+﻿
+@{
+    ViewData["Title"] = "Commandes";
+}
+
+<!-- Vendor CSS -->
+
+<link rel="stylesheet" href="~/vendor/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="~/vendor/themify-icons/themify-icons.css">
+<link rel="stylesheet" href="~/vendor/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="~/vendor/animate.css/animate.min.css">
+<link rel="stylesheet" href="~/vendor/jscrollpane/jquery.jscrollpane.css">
+<link rel="stylesheet" href="~/vendor/waves/waves.min.css">
+@*<link rel="stylesheet" href="~/vendor/chartist/chartist.min.css">*@
+<link rel="stylesheet" href="~/vendor/switchery/dist/switchery.min.css">
+<link rel="stylesheet" href="~/vendor/DataTables/css/dataTables.bootstrap4.min.css">
+<link rel="stylesheet" href="~/vendor/DataTables/Responsive/css/responsive.bootstrap4.min.css">
+<link rel="stylesheet" href="~/vendor/DataTables/Buttons/css/buttons.dataTables.min.css">
+<link rel="stylesheet" href="~/vendor/DataTables/Buttons/css/buttons.bootstrap4.min.css">
+
+<!-- Neptune CSS -->
+<link rel="stylesheet" href="~/vendor/assets/css/core.css">
+
+<style>
+    .dataTables_filter {
+        display: none;
+    }
+</style>
+
+<div class="box box-block bg-white">
+    <div class="overflow-x-auto">
+        <table class="table table-striped table-bordered dataTable" id="table-3">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th>Order Key</th>
+                    <th>Date</th>
+                    <th>Order Status</th>
+                    <th>Company/Customer First Last Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in (List<AtomicSeller.OrderVM>)ViewBag.OrderVMs)
+                {
+                    <tr>
+                        <td><input type="checkbox" class="rowsCB" /></td>
+                        <td><a href="/Order/OrderEdit?id=@item.Order.OrderId"><i class="fa fa-pencil" aria-hidden="true"></i></a></td>
+                        <td>@item.Order.OrderKey</td>
+                        <!--<td>if (item.Order.CreateDate != null) </td>-->
+                        <td>
+                            @item.Order.CreateDate.Value.ToString("MM/dd/yyyy")
+                        </td>
+
+                        @if (item.Order.OrderStatus != null)
+                        {
+                            if (item.Order.OrderStatus.ToLower() == "pending" || item.Order.OrderStatus.ToLower() == "incomplete")
+                            {
+                                <td style="color:red">@item.Order.OrderStatus</td>
+                            }
+                            else if (item.Order.OrderStatus.ToLower() == "processing" || item.Order.OrderStatus.ToLower() == "complete" || item.Order.OrderStatus.ToLower() == "sent")
+                            {
+                                <td style="color:darkorange">@item.Order.OrderStatus</td>
+                            }
+                            else if (item.Order.OrderStatus.ToLower() == "delivered")
+                            {
+                                <td style="color:green">@item.Order.OrderStatus</td>
+                            }
+                            else
+                            {
+                                <td>@item.Order.OrderStatus</td>
+                            }
+                        }
+                        else
+                        {
+                            <td></td>
+                        }
+                        <td>@item.ExtendedName</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section scripts {
+
+    @*<script type="text/javascript" src="~/vendor/jquery/jquery-1.12.3.min.js"></script>*@
+    <script type="text/javascript" src="~/vendor/tether/js/tether.min.js"></script>
+    <script type="text/javascript" src="~/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="~/vendor/detectmobilebrowser/detectmobilebrowser.js"></script>
+    <script type="text/javascript" src="~/vendor/jscrollpane/jquery.mousewheel.js"></script>
+    <script type="text/javascript" src="~/vendor/jscrollpane/mwheelIntent.js"></script>
+    <script type="text/javascript" src="~/vendor/jscrollpane/jquery.jscrollpane.min.js"></script>
+    <script type="text/javascript" src="~/vendor/waves/waves.min.js"></script>
+    @*<script type="text/javascript" src="~/vendor/chartist/chartist.min.js"></script>*@
+    <script type="text/javascript" src="~/vendor/switchery/dist/switchery.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/js/dataTables.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Responsive/js/dataTables.responsive.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Responsive/js/responsive.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Buttons/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Buttons/js/buttons.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/JSZip/jszip.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/pdfmake/build/pdfmake.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/pdfmake/build/vfs_fonts.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Buttons/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Buttons/js/buttons.print.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Buttons/js/buttons.colVis.min.js"></script>
+
+    <!-- Neptune JS -->
+    @*<script type="text/javascript" src="~/vendor/assets/js/app.js"></script>*@
+    <script type="text/javascript" src="~/vendor/assets/js/demo.js"></script>
+    <script type="text/javascript" src="~/vendor/assets/js/tables-datatable.js"></script>
+
+    <script>
+        function SelectAll(element) {
+            if ($(element).is(':checked')) {
+                $('.rowsCB').prop('checked', true);
+            }
+            else {
+                $('.rowsCB').prop('checked', false);
+            }
+
+        }
+
+    </script>
+}

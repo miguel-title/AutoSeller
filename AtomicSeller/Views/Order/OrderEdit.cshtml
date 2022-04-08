@@ -1,0 +1,1513 @@
+﻿@model AtomicSeller.DEALVM
+
+@{
+    ViewData["Title"] = "Commande";
+    int deliveryTab = 1, deliveryDiv = 1;
+}
+
+<!-- Vendor CSS -->
+<link rel="stylesheet" href="~/vendor/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="~/vendor/themify-icons/themify-icons.css">
+<link rel="stylesheet" href="~/vendor/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="~/vendor/animate.css/animate.min.css">
+<link rel="stylesheet" href="~/vendor/jscrollpane/jquery.jscrollpane.css">
+<link rel="stylesheet" href="~/vendor/waves/waves.min.css">
+@*<link rel="stylesheet" href="~/vendor/chartist/chartist.min.css">*@
+<link rel="stylesheet" href="~/vendor/switchery/dist/switchery.min.css">
+
+<link rel="stylesheet" href="~/vendor/DataTables/css/dataTables.bootstrap4.min.css">
+<link rel="stylesheet" href="~/vendor/DataTables/Responsive/css/responsive.bootstrap4.min.css">
+<link rel="stylesheet" href="~/vendor/DataTables/Buttons/css/buttons.dataTables.min.css">
+<link rel="stylesheet" href="~/vendor/DataTables/Buttons/css/buttons.bootstrap4.min.css">
+
+<!-- Neptune CSS -->
+<link rel="stylesheet" href="~/vendor/assets/css/core.css">
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<style>
+    #productTable {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #productTable td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        #productTable tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+
+    .quantityinput{
+        width:30px;
+    }
+
+    th input{
+        width:70%!important;
+    }
+
+    body {
+        font-family: Arial;
+    }
+
+    /* Style the tab */
+    .tab {
+        overflow: hidden;
+        border: 1px solid #ccc;
+        background-color: #f1f1f1;
+    }
+
+    /* Style the buttons inside the tab */
+    .tab button {
+        background-color: inherit;
+        float: left;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 14px 16px;
+        transition: 0.3s;
+        font-size: 17px;
+    }
+
+    #table-2 tbody td {
+        padding: 1px 1px 1px 1px !important;
+        vertical-align: middle;
+    }
+
+    #table-2 thead th input {
+        height:20px !important;
+    }
+
+    /* Change background color of buttons on hover */
+    .tab button:hover {
+        background-color: #ddd;
+    }
+
+            /* Create an active/current tablink class */
+            .tab button.active {
+                background-color: #ccc;
+            }
+
+    /* Style the tab content */
+    .tabcontent {
+        display: none;
+        padding: 6px 12px;
+        border: 1px solid #ccc;
+        border-top: none;
+        background-color: white;
+    }
+
+    .dataTables_filter {
+        display: none;
+    }
+</style>
+<div class="tab" id="tabsDiv">
+    <button class="tablinks active" id="orderTab" onclick="openTab(event, 'Order')">Order</button>
+    <button class="tablinks" onclick="openTab(event, 'Addresses')">Addresses</button>
+    <button class="tablinks" onclick="openTab(event, 'Delivery')">Delivery</button>
+    <button class="tablinks" onclick="openTab(event, 'Products')">Products</button>
+</div>
+
+@using (Html.BeginForm("Save", "Order", FormMethod.Post, new { id = "Order-frmdata" }))
+{
+
+    <div class="row" style="background:white;">
+        <input type="submit" class="btn btn-primary" value="Save Order" style="margin:20px;" id="SaveBtn" />
+    </div>
+
+    <div id="Order" class="tabcontent" style="display:block;">
+        <div class="box box-block bg-white">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="box box-block bg-white">
+                        @Html.TextBoxFor(m => m.OrderVMs.First().Order.OrderId, new { @type = "hidden", @id = "OrderID" });
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label>Order Status:</label>
+                            </div>
+                            <div class="col-md-8">
+                                @if (Model.OrderVMs.First().Order.OrderStatus != null)
+                                    if (Model.OrderVMs.First().Order.OrderStatus.ToLower().Trim() == "pending" || Model.OrderVMs.First().Order.OrderStatus.ToLower().Trim() == "incomplete")
+                                    {
+                                        <label style="color:red" id="Order_Status">@Model.OrderVMs.First().Order.OrderStatus</label>
+                                    }
+                                    else if (Model.OrderVMs.First().Order.OrderStatus.ToLower().Trim() == "processing" || Model.OrderVMs.First().Order.OrderStatus.ToLower().Trim() == "complete" || Model.OrderVMs.First().Order.OrderStatus.ToLower().Trim() == "sent")
+                                    {
+                                        <label style="color:darkorange" id="Order_Status">@Model.OrderVMs.First().Order.OrderStatus</label>
+                                    }
+                                    else if (Model.OrderVMs.First().Order.OrderStatus.ToLower().Trim() == "delivered")
+                                    {
+                                        <label style="color:green" id="Order_Status">@Model.OrderVMs.First().Order.OrderStatus</label>
+                                    }
+                                    else
+                                    {
+                                        <label id="Order_Status">@Model.OrderVMs.First().Order.OrderStatus</label>
+                                    }
+                            </div>
+                        </div>
+                        @{
+                            string payment_Date = DateTime.Now.ToString("yyyy-MM-dd");
+                            if (Model.OrderVMs.First().Order.PaymentDate != null)
+                            {
+                                payment_Date = Model.OrderVMs.First().Order.PaymentDate.ToString("yyyy-MM-dd");
+                            }
+                        }
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="CreateDate">Create Date</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.OrderVMs.First().Order.CreateDate, "{0:yyyy-MM-dd}", new { @type = "date", @id = "CreateDate", @class = "form-control orderFields", @placeholder = "", @required = "required" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="PurchaseDate">Ecommerce Order Date</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.OrderVMs.First().Order.PurchaseDate, "{0:yyyy-MM-dd}", new { @type = "date", @id = "PurchaseDate", @class = "form-control orderFields", @placeholder = "", @required = "required" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="PaymentDate">Payment Date</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.OrderVMs.First().Order.PaymentDate, "{0:yyyy-MM-dd}", new { @type = "date", @id = "PaymentDate", @class = "form-control orderFields", @placeholder = "", @required = "required" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="OrderKey">Ecommerce Key</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.OrderVMs.First().Order.OrderKey, new { @type = "text", @id = "OrderKey", @class = "form-control orderFields", @placeholder = "", @required = "required" })
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="TransactionPrice">Transaction Price</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.OrderVMs.First().Order.TransactionPrice, new { @type = "text", @id = "TransactionPrice", @class = "form-control orderFields", @placeholder = "" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="Addresses" class="tabcontent">
+        <div class="box box-block bg-white">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="box box-block bg-white">
+                        @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.DeliveryId, new { @type = "hidden", @id = "DeliveryID" });
+                        <div class="row" style="margin-bottom:1rem">
+                            <h2>Sender</h2>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="SenderName">Contact Name<span style="color:red"> *</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.SenderName, new { @type = "text", @class = "form-control addressFields", @id = "SenderName", @placeholder = "", @required = "required" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="SenderCompany">Company</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.SenderCompanyName, new { @type = "text", @class = "form-control addressFields", @id = "SenderCompany", @placeholder = "" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="SenderAddress1">Address 1<span style="color:red"> *</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.SenderAddr0, new { @type = "text", @class = "form-control addressFields", @id = "SenderAddress1", @placeholder = "", @required = "required" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="SenderAddress2">Address 2</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.SenderAddr1, new { @type = "text", @class = "form-control addressFields", @id = "SenderAddress2", @placeholder = "" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="SenderAddress3">Address 3</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.SenderAddr2, new { @type = "text", @class = "form-control addressFields", @id = "SenderAddress3", @placeholder = "" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="SenderPostalCode">Postal Code<span style="color:red"> *</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.SenderZip, new { @type = "text", @class = "form-control addressFields", @id = "SenderPostalCode", @placeholder = "", @required = "" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="SenderCity">City<span style="color:red">*</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.SenderCity, new { @type = "text", @class = "form-control addressFields", @id = "SenderCity", @placeholder = "", @required = "required" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="SenderState_Province">State/Province</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.SenderStateProvinceCode, new { @type = "text", @class = "form-control addressFields", @id = "SenderState_Province", @placeholder = "" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="SenderCountry">Country Name<span style="color:red"> *</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.SenderCountryLib, new { @type = "text", @class = "form-control addressFields", @id = "SenderCountry", @placeholder = "", @required = "required" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="SenderPhone">Contact Phone</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.SenderPhoneNumber, new { @type = "text", @class = "form-control addressFields", @id = "SenderPhone", @placeholder = "" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="SenderEmail">Contact Email</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.SenderEmail, new { @type = "text", @class = "form-control addressFields", @id = "SenderEmail", @placeholder = "" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="SenderRelayNumber">Relay Number</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.SenderRelayNumber, new { @type = "text", @class = "form-control addressFields", @id = "SenderRelayNumber", @placeholder = "" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="box box-block bg-white">
+                        @Html.TextBoxFor(m => m.Customer.CustomerId, new { @type = "hidden", @id = "CustomerID" });
+                        <div class="row" style="marin-bottom:1rem;">
+                            <button class="btn btn-primary" onclick="OpenCustomerModal(event)" style="float:right;">Pick Customer</button>
+                            <h2>Customer</h2>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="CustomerName">Contact Name<span style="color:red"> *</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.Customer.LastName, new { @type = "text", @class = "form-control addressFields", @id = "CustomerName", @placeholder = "", @required = "" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="CustomerCompany">Company</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.Customer.Company, new { @type = "text", @class = "form-control addressFields", @id = "CustomerCompany", @placeholder = "" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="CustomerAddress1">Address 1<span style="color:red"> *</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.Customer.Address0, new { @type = "text", @class = "form-control addressFields", @id = "CustomerAddress1", @placeholder = "", @required = "required" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="CustomerAddress2">Address 2</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.Customer.Address1, new { @type = "text", @class = "form-control addressFields", @id = "CustomerAddress2", @palceholder = "" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="CustomerAddress3">Address 3</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.Customer.Address2, new { @type = "text", @class = "form-control addressFields", @id = "CustomerAddress3", @placeholder = "" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="CustomerPostalCode">Postal Code<span style="color:red"> *</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.Customer.ZipCode, new { @type = "text", @class = "form-control addressFields", @id = "CustomerPostalCode", @placeholder = "", @required = "required" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="CustomerCity">City<span style="color:red">*</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.Customer.City, new { @type = "text", @class = "form-control addressFields", @id = "CustomerCity", @placeholder = "", @required = "required" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="CustomerStateProvince">State/Province</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.Customer.StateProvince, new { @type = "text", @class = "form-control addressFields", @id = "CustomerStateProvince", @placeholder = "" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="CustomerCountryName">Country Name<span style="color:red"> *</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.Customer.CountryName, new { @type = "text", @class = "form-control addressFields", @id = "CustomerCountryName", @placeholder = "", @required = "required" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="CustomerPhone">Contact Phone</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.Customer.Phone1, new { @type = "text", @class = "form-control addressFields", @id = "CustomerPhone", @placeholder = "" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="CustomerMobilePhone">Contact Mobile</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.Customer.MobilePhone, new { @type = "text", @class = "form-control addressFields", @id = "CustomerMobilePhone", @placeholder = "" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="CustomerContactEmail">Contact Email</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.Customer.Email1, new { @type = "text", @class = "form-control addressFields", @id = "CustomerContactEmail", @placeholder = "" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="Delivery" class="tabcontent">
+        <div class="box box-block bg-white">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="box box-block bg-white">
+                        @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.DeliveryId, new { @type = "hidden", id = "DelveryID" })
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label>Delivery Status:</label>
+                            </div>
+                            <div class="col-md-8">
+                                @if (Model.DeliveryVMs.First().Delivery.ShipmentStatus != null)
+                                    if (Model.DeliveryVMs.First().Delivery.ShipmentStatus.ToLower().Trim() == "pending" || Model.DeliveryVMs.First().Delivery.ShipmentStatus.ToLower().Trim() == "incomplete")
+                                    {
+                                        <label style="color:red" id="Delivery_Status">@Model.DeliveryVMs.First().Delivery.ShipmentStatus</label>
+                                    }
+                                    else if (Model.DeliveryVMs.First().Delivery.ShipmentStatus.ToLower().Trim() == "processing" || Model.DeliveryVMs.First().Delivery.ShipmentStatus.ToLower().Trim() == "complete" || Model.DeliveryVMs.First().Delivery.ShipmentStatus.ToLower().Trim() == "sent")
+                                    {
+                                        <label style="color:darkorange" id="Delivery_Status">@Model.DeliveryVMs.First().Delivery.ShipmentStatus</label>
+                                    }
+                                    else if (Model.DeliveryVMs.First().Delivery.ShipmentStatus.ToLower().Trim() == "delivered")
+                                    {
+                                        <label style="color:green" id="Delivery_Status">@Model.DeliveryVMs.First().Delivery.ShipmentStatus</label>
+                                    }
+                                    else
+                                    {
+                                        <label id="Delivery_Status">@Model.DeliveryVMs.First().Delivery.ShipmentStatus</label>
+                                    }
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="ShippingCarrier">Shipping Carrier<span style="color:red"> *</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                <select class="form-control DeliveryFields" name="ShippingCarrier" id="ShippingCarrier" onchange="changeShippingCarrier()" required>
+                                    <option value="Colissimo">Colissimo</option>
+                                    <option value="Mondial relay">Mondial relay</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="DeliveryShippingCostPrice">Shipping Cost</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.ShippingCostPrice, new { @type = "number", Class = "form-control DeliveryFields", @id = "DeliveryShippingCostPrice", @placeholder = "" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="ShippingService">Shipping Service<span style="color:red"> *</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                <select class="form-control DeliveryFields" name="ShippingService" id="ShippingService" required>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="DeliverSigned">Signature</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.Signed, new { @type = "text", @class = "form-control DeliveryFields", @id = "DeliverSigned", @placeholder = "" })
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="DeliveryShippingDate">Shipping Date</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.ShippingDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control DeliveryFields", @id = "DeliveryShippingDate", @placeholder = "" })
+                            </div>
+                        </div>
+                        @*<div class="form-group row">
+                                <div class="col-md-4">
+                                    <label for="Delivery.DeliveryDate">Expected Delivery Date</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.DeliveryDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control DeliveryFields", @id = "DeliveryDeliveryDate", @placeholder = "" })
+                                </div>
+                            </div>*@
+
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="DeliveryDeliveryDate">Real Delivery Date</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.DeliveryDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control DeliveryFields", @id = "DeliveryDeliveryDate", @placeholder = "" })
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="DeliveryInstruction">Delivery Instructions</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(m => m.DeliveryVMs.First().Delivery.DeliveryInstructions1, new { @type = "text", @class = "form-control DeliveryFields", @id = "DeliveryInstruction", @placeholder = "" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+
+<div id="Products" class="tabcontent">
+    <div class="box box-block bg-white">
+        <div class="row">
+
+            @{
+                int DeliveryID = Model.DeliveryVMs.First().Delivery.DeliveryId;
+            }
+            <button class="btn btn-primary" data-toggle="tooltip" title="Save" onclick="saveDeliveryProduct(@DeliveryID)"  style="float:right;margin-right:20px;">
+                <i class="mdi mdi-content-save-all"></i>
+            </button>
+            <button class="btn btn-primary btn-edit" title="Add" onclick="OpenProductModal(false, this, @DeliveryID)" style="float:right;margin-right:10px;">
+                <i class="mdi mdi-plus"></i>
+            </button>
+        </div>
+        <div class="row">
+            <br />
+            <div>
+                <table id="productTable" class="table table-striped table-bordered dataTable productTable" cellspacing="0" style="table-layout: fixed;">
+                    <colgroup>
+                        <col style=" width:2%;">
+                        <col style=" width:2%;">
+                        <col style="width: 5%;">
+                        <col style="width: 20%;">
+                        <col style="width: 10%;">
+                        <col style="width: 10%;">
+                        <col style="width: 10%;">
+                        <col style="width: 16%;">
+                        <col style="width: 60px;">
+                        <col style="width: 5%;">
+                        <col style="width: 5%;">
+                        <col style="width: 5%;">
+                        <col style="width: 5%;">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th>Ordered Qty</th>
+                            <th>SKU</th>
+                            <th>MPN</th>
+                            <th>GTIN</th>
+                            <th>Brand</th>
+                            <th>Product name</th>
+                            <th style="white-space: pre-wrap;text-align:center;">Output<span style="display:block;">quantity</span></th>
+                            <th>Physical stock</th>
+                            <th>Reserved stock</th>
+                            <th style="display:none;">Available stock</th>
+                            <th>Available stock</th>
+                            <th>Out of stock</th>
+                            <th style="display:none">id</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @{
+                            int nDeliveryID = Model.DeliveryVMs.First().Delivery.DeliveryId;
+                            int nOrderID = Model.OrderVMs.First().Order.OrderId;
+                            List<DeliveryProductVM> deliveryProducts = Model.DeliveryVMs.First().DeliveryProductVMs;
+                            int nDeliveryProductID = 0;
+                            string strSku = "";
+                            string strMpn = "";
+                            string strGtin = "";
+                            string strBrand = "";
+                            string strProductName = "";
+                            int? nStock = 0;
+                            int? nOutofStock = 0;
+                            int? nQuantity = 0;
+                            int? nOrderedQty = 0;
+                            int? minus = 0;
+                            int? nReservedStock = 0;
+                            int? nAvaliableStock = 0;
+                            List<ProductVM> productVMs = Model.ProductsPool;
+                            if (deliveryProducts.Count() > 0)
+                            {
+                                foreach (var deliveryproduct in deliveryProducts)
+                                {
+                                    if (deliveryproduct.DeliveryProduct.DeliveryId == nDeliveryID)
+                                    {
+                                        nDeliveryProductID = deliveryproduct.DeliveryProduct.DeliveryProductId;
+                                        strSku = deliveryproduct.DeliveryProduct.Sku;
+                                        foreach (var productvm in productVMs)
+                                        {
+                                            if (productvm.Product.Sku == strSku)
+                                            {
+                                                strMpn = productvm.Product.MPN;
+                                                strGtin = productvm.Product.Gtin;
+                                                strBrand = productvm.Product.Brand;
+                                                strProductName = productvm.Product.ProductName;
+                                                nStock = productvm.Product.TotalProductsStock;
+                                                nReservedStock = productvm.Product.ReservedStock == null ? 0 : productvm.Product.ReservedStock;
+                                                nQuantity = deliveryproduct.DeliveryProduct.Quantity;
+                                                nOrderedQty = deliveryproduct.DeliveryProduct.OrderedQuantity == null ? 0 : deliveryproduct.DeliveryProduct.OrderedQuantity;
+
+                                                minus = nStock - nQuantity + nReservedStock;
+                                                nAvaliableStock = minus >= 0 ? minus : 0;
+                                                nOutofStock = minus < 0 ? minus : 0;
+
+                                                <tr>
+                                                    <td style="text-align:center !important;">
+                                                        @*<button class="btn btn-primary btn-edit" title="Edit" onclick="EditablRow(this, @nDeliveryProductID)">
+                                                <i class="mdi mdi-tooltip-edit"></i>
+                                            </button>
+                                            <button class="btn btn-primary"
+                                                    data-toggle="tooltip"
+                                                    title="Delete" onclick="deleteDeliveryProduct(this, @nDeliveryProductID, @nDeliveryID)">
+                                                <i class="mdi mdi-delete"></i>
+                                            </button>*@
+                                                        <i class="fa fa-pencil" aria-hidden="true" onclick="EditablRow(this, @nDeliveryProductID)"></i>
+                                                    </td>
+                                                    <td style="text-align:center !important;">
+                                                        <i class="fa fa-trash" aria-hidden="true" onclick="deleteDeliveryProduct(this, @nDeliveryProductID, @nDeliveryID)"></i>
+                                                    </td>
+                                                    <td class="@nDeliveryProductID orderedqty">@nOrderedQty</td>
+                                                    <td class="@nDeliveryProductID sku">@strSku</td>
+                                                    <td class="@nDeliveryProductID mpn">@strMpn</td>
+                                                    <td class="@nDeliveryProductID gtin">@strGtin</td>
+                                                    <td class="@nDeliveryProductID brand">@strBrand</td>
+                                                    <td class="@nDeliveryProductID productname">@strProductName</td>
+                                                    <td class="@nDeliveryProductID quantity" contenteditable="false" style="text-align:center;">
+                                                        <input class="quantityinput" type="text" maxlength="4" value="@nQuantity" />
+                                                    </td>
+                                                    <td class="@nDeliveryProductID stock">@nStock</td>
+                                                    <td class="@nDeliveryProductID reservedstock">@nReservedStock</td>
+                                                    <td class="@nDeliveryProductID minus" style="display:none;">@minus</td>
+                                                    <td class="@nDeliveryProductID availablestock">@nAvaliableStock</td>
+                                                    <td class="@nDeliveryProductID outofstock">@nOutofStock</td>
+                                                    <td class="@nDeliveryProductID id" style="display:none;">@nDeliveryProductID</td>
+                                                </tr>
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                foreach (var orderProduct in Model.OrderVMs.First().OrderProducts)
+                                {
+                                    strSku = orderProduct.Sku;
+                                    foreach (var productvm in productVMs)
+                                    {
+                                        if (productvm.Product.Sku == strSku)
+                                        {
+                                            strMpn = productvm.Product.MPN;
+                                            strGtin = productvm.Product.Gtin;
+                                            strBrand = productvm.Product.Brand;
+                                            strProductName = productvm.Product.ProductName;
+                                            nStock = productvm.Product.TotalProductsStock;
+                                            nReservedStock = productvm.Product.ReservedStock == null ? 0 : productvm.Product.ReservedStock;
+
+                                            nQuantity = 0;
+
+
+                                            minus = nStock - nQuantity + nReservedStock;
+
+                                            nAvaliableStock = minus >= 0 ? minus : 0;
+                                            nOutofStock = minus < 0 ? minus : 0;
+
+                                            <tr>
+                                                <td style="text-align:center !important;">
+                                                    @*<button class="btn btn-primary btn-edit" title="Edit" onclick="EditablRow(this, 0)">
+                                                        <i class="mdi mdi-tooltip-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-primary"
+                                                            data-toggle="tooltip"
+                                                            title="Delete" onclick="deleteDeliveryProduct(this, 0, @nDeliveryID)">
+                                                        <i class="mdi mdi-delete"></i>
+                                                    </button>*@    
+                                                    <i class="fa fa-pencil" aria-hidden="true" onclick="EditablRow(this, @nDeliveryProductID)"></i>
+                                                </td>
+                                                <td style="text-align:center !important;">
+                                                    <i class="fa fa-trash" aria-hidden="true" onclick="deleteDeliveryProduct(this, @nDeliveryProductID, @nDeliveryID)"></i>
+                                                </td>
+                                                <td class="@nDeliveryProductID orderedqty">0</td>
+                                                <td class="@nDeliveryProductID sku">@strSku</td>
+                                                <td class="@nDeliveryProductID mpn">@strMpn</td>
+                                                <td class="@nDeliveryProductID gtin">@strGtin</td>
+                                                <td class="@nDeliveryProductID brand">@strBrand</td>
+                                                <td class="@nDeliveryProductID productname">@strProductName</td>
+                                                <td class="@nDeliveryProductID quantity" contenteditable="false" style="text-align:center;">
+                                                    <input class="quantityinput" type="text" maxlength="4" value="@nQuantity" />
+                                                </td>
+                                                <td class="@nDeliveryProductID stock">@nStock</td>
+                                                <td class="@nDeliveryProductID reservedstock">@nReservedStock</td>
+                                                <td class="@nDeliveryProductID minus" style="display:none;">@minus</td>
+                                                <td class="@nDeliveryProductID availablestock">@nAvaliableStock</td>
+                                                <td class="@nDeliveryProductID outofstock">@nOutofStock</td>
+                                                <td class="@nDeliveryProductID id" style="display:none;">@nDeliveryProductID</td>
+                                            </tr>
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="customerModal" role="dialog">
+    <div class="modal-dialog modal-lg">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Existing Customer</h4>
+            </div>
+            <div class="modal-body">
+                <div class="overflow-x-auto">
+                    <table class="table table-striped table-bordered dataTable" id="table-1">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Company</th>
+                                <th>City</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var CustomerVM in Model.CustomerPool)
+                            {
+                                <tr>
+                                    <td>@CustomerVM.Fullname</td>
+                                    <td>@CustomerVM.Customer.Company</td>
+                                    <td>@CustomerVM.Customer.City</td>
+                                    <td>
+                                        <a href="#" data-id="@CustomerVM.Customer.CustomerId" data-name="@CustomerVM.Fullname" data-company="@CustomerVM.Customer.Company"
+                                           data-address1="@CustomerVM.Customer.Address0" data-address2="@CustomerVM.Customer.Address1" data-address3="@CustomerVM.Customer.Address2"
+                                           data-city="@CustomerVM.Customer.City" data-email1="@CustomerVM.Customer.Email1"
+                                           data-phone1="@CustomerVM.Customer.Phone1" data-mobile="@CustomerVM.Customer.MobilePhone" data-country="@CustomerVM.Customer.CountryName" data-postalcode="@CustomerVM.Customer.ZipCode"
+                                           data-stateprovince="@CustomerVM.Customer.StateProvince"
+                                           onclick="SelectCustomer(this)">Select</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div class="modal fade" id="productModal" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <label style="display:none" class="deliveryid"></label>
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Existing Products</h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+            <div class="modal-body">
+                <div class="overflow-x-auto">
+                    <table class="table table-striped table-bordered dataTable" id="table-2" width="100%">
+                        <thead>
+                            <tr>
+                                <th>SKU</th>
+                                <th>Name</th>
+                                <th>MPN</th>
+                                <th>GTIN</th>
+                                <th>Brand</th>
+                                <th>Category</th>
+                                <th>Stock</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.ProductsPool)
+                            {
+                                var reservedstock = item.Product.ReservedStock == null ? 0 : item.Product.ReservedStock;
+                                <tr>
+                                    <td>@item.Product.Sku</td>
+                                    <td>@item.Product.ProductName</td>
+                                    <td>@item.Product.MPN</td>
+                                    <td>@item.Product.Gtin</td>
+                                    <td>@item.Product.Brand</td>
+                                    <td>@item.Product.FamilyName</td>
+                                    <td>@item.Product.TotalProductsStock</td>
+                                    <td>
+                                        <a href="#" data-id="@item.Product.ProductId" data-reservedstock="@reservedstock" data-mpn="@item.Product.MPN" data-gtin="@item.Product.Gtin" data-brand="@item.Product.Brand" data-sku="@item.Product.Sku" data-qty="@item.Product.PriceInclTax"
+                                           data-stock="@item.Product.TotalProductsStock" data-product="@item.Product.ProductName" data-unitid="@item.Product.ProductId" data-price="@item.Product.PriceInclTax"
+                                           onclick="AddProduct(this)">Select</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        if (document.getElementById("ShippingCarrier").value == "Colissimo") {
+            var servicedropdownlist = document.getElementById("ShippingService");
+            var length = servicedropdownlist.options.length;
+            for (i = length - 1; i >= 0; i--) {
+                servicedropdownlist.options[i] = null;
+            }
+
+            var firstoption = document.createElement("option");
+            firstoption.text = "France - Colissimo Domicile - sans signature";
+            firstoption.value = "France - Colissimo Domicile - sans signature";
+            servicedropdownlist.add(firstoption);
+
+            var secondoption = document.createElement("option");
+            secondoption.text = "France - Colissimo Domicile - avec signature";
+            secondoption.value = "France - Colissimo Domicile - avec signature";
+            servicedropdownlist.add(secondoption);
+        }
+        else if (document.getElementById("ShippingCarrier").value == "Mondial relay") {
+            var servicedropdownlist = document.getElementById("ShippingService");
+            var length = servicedropdownlist.options.length;
+            for (i = length - 1; i >= 0; i--) {
+                servicedropdownlist.options[i] = null;
+            }
+
+            var firstoption = document.createElement("option");
+            firstoption.text = "Livraison en Point Relais®";
+            firstoption.value = "Livraison en Point Relais®";
+            servicedropdownlist.add(firstoption);
+
+            var secondoption = document.createElement("option");
+            secondoption.text = "Livraison en Point Relais® XL";
+            secondoption.value = "Livraison en Point Relais® XL";
+            servicedropdownlist.add(secondoption);
+        }
+
+
+    })
+
+    function changeShippingCarrier() {
+
+        if (document.getElementById("ShippingCarrier").value == "Colissimo") {
+            var servicedropdownlist = document.getElementById("ShippingService");
+            var length = servicedropdownlist.options.length;
+            for (i = length - 1; i >= 0; i--) {
+                servicedropdownlist.options[i] = null;
+            }
+
+            var firstoption = document.createElement("option");
+            firstoption.text = "France - Colissimo Domicile - sans signature";
+            firstoption.value = "France - Colissimo Domicile - sans signature";
+            servicedropdownlist.add(firstoption);
+
+            var secondoption = document.createElement("option");
+            secondoption.text = "France - Colissimo Domicile - avec signature";
+            secondoption.value = "France - Colissimo Domicile - avec signature";
+            servicedropdownlist.add(secondoption);
+        }
+        else if (document.getElementById("ShippingCarrier").value == "Mondial relay") {
+            var servicedropdownlist = document.getElementById("ShippingService");
+            var length = servicedropdownlist.options.length;
+            for (i = length - 1; i >= 0; i--) {
+                servicedropdownlist.options[i] = null;
+            }
+
+            var firstoption = document.createElement("option");
+            firstoption.text = "Livraison en Point Relais®";
+            firstoption.value = "Livraison en Point Relais®";
+            servicedropdownlist.add(firstoption);
+
+            var secondoption = document.createElement("option");
+            secondoption.text = "Livraison en Point Relais® XL";
+            secondoption.value = "Livraison en Point Relais® XL";
+            servicedropdownlist.add(secondoption);
+        }
+    }
+
+    $('.quantityinput').change(function () {
+        var rowEdit = $(this).parent("td").parent('tr');
+        console.log(rowEdit);
+        rowEdit.children('.output').text($(this).val())
+        rowEdit.children('.minus').text(parseInt(rowEdit.children(".stock").text()) - parseInt(rowEdit.children(".output").text()));
+        var reservedstock = rowEdit.children('.reservedstock').text();
+        var stock = rowEdit.children('.stock').text();
+        var quantity = $(this).val();
+        var minus = parseInt(stock) - parseInt(quantity) + parseInt(reservedstock);
+        if (minus > 0) {
+            rowEdit.children('.outofstock').text('0')
+            rowEdit.children('.availablestock').text(minus);
+        } else {
+            rowEdit.children('.outofstock').text(minus);
+            rowEdit.children('.availablestock').text(0);
+        }
+
+    })
+
+    function openTab(evt, cityName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(cityName).style.display = "block";
+        evt.currentTarget.className += " active";
+        if (cityName == "Products") {
+            document.getElementById("SaveBtn").style.display = "none";
+        } else {
+            document.getElementById("SaveBtn").style.display = "block";
+        }
+    }
+</script>
+
+@section scripts {
+    @*<script type="text/javascript" src="~/vendor/jquery/jquery-1.12.3.min.js"></script>*@
+    <script type="text/javascript" src="~/vendor/tether/js/tether.min.js"></script>
+    <script type="text/javascript" src="~/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="~/vendor/detectmobilebrowser/detectmobilebrowser.js"></script>
+    <script type="text/javascript" src="~/vendor/jscrollpane/jquery.mousewheel.js"></script>
+    <script type="text/javascript" src="~/vendor/jscrollpane/mwheelIntent.js"></script>
+    <script type="text/javascript" src="~/vendor/jscrollpane/jquery.jscrollpane.min.js"></script>
+    <script type="text/javascript" src="~/vendor/waves/waves.min.js"></script>
+    @*<script type="text/javascript" src="~/vendor/chartist/chartist.min.js"></script>*@
+    <script type="text/javascript" src="~/vendor/switchery/dist/switchery.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/js/dataTables.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Responsive/js/dataTables.responsive.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Responsive/js/responsive.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Buttons/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Buttons/js/buttons.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/JSZip/jszip.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/pdfmake/build/pdfmake.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/pdfmake/build/vfs_fonts.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Buttons/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Buttons/js/buttons.print.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Buttons/js/buttons.colVis.min.js"></script>
+
+    <!-- Neptune JS -->
+    @*<script type="text/javascript" src="~/vendor/assets/js/app.js"></script>*@
+    <script type="text/javascript" src="~/vendor/assets/js/demo.js"></script>
+    @*<script type="text/javascript" src="~/vendor/assets/js/tables-datatable.js"></script>*@
+<script>
+        //$('#orderTab').click();
+        function OpenCustomerModal(e) {
+            e.preventDefault();
+            $('#customerModal').modal('show');
+        }
+        var editProduct = null;
+        var delid = 0;
+        function OpenProductModal(isEdit, element, deliveryid) {
+            if (isEdit) {
+                editProduct = $(element).parent().parent();
+            }
+            else {
+                editProduct = null;
+            }
+            //delid = deliveryID;
+            $("#productModal").find('.deliveryid').text(deliveryid);
+            $('#productModal').modal('show');
+        }
+
+        function RemoveProduct(element, id) {
+            if (id != 0) {
+                BlockUI();
+                $.ajax({
+                    method: "Post",
+                    url: '/Order/DeleteDeliveryProduct',
+                    // contentType: 'application/json',
+                    data: {id:id},//JSON.stringify(data),
+                    success: function (d) {
+                        $(element).parent().parent().parent().remove();
+                        UnBlockUI();
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        UnBlockUI();
+                        alert('Something went wrong');
+                    }
+                });
+            }
+            else {
+                $(element).parent().parent().parent().remove();
+            }
+
+        }
+
+        function DeleteDelivery(element, e,deliverid) {
+
+            e.preventDefault();
+            if (deliverid==0) {
+                var id = $(element).parent().parent().parent().parent().parent().attr('id');
+                $('.deliveryTabLink').each(function (e) {
+                    if ($(this).text() == id) {
+                        $(this).remove();fedi
+                        return false;
+                    }
+                });
+                $(element).parent().parent().parent().parent().parent().remove();
+            }
+            else {
+                BlockUI();
+                $.ajax({
+                    method: "Post",
+                    url: '/Order/DeleteDelivery',
+                    // contentType: 'application/json',
+                    data: { id: deliverid },//JSON.stringify(data),
+                    success: function (d) {
+                        var id = $(element).parent().parent().parent().parent().parent().attr('id');
+                        $('.deliveryTabLink').each(function (e) {
+                            if ($(this).text() == id) {
+                                $(this).remove();
+                                return false;
+                            }
+                        });
+                        $(element).parent().parent().parent().parent().parent().remove();
+                        UnBlockUI();
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        UnBlockUI();
+                        alert('Something went wrong');
+                    }
+                });
+            }
+
+        }
+        var deliveryCount = parseInt('@Model.DeliveryVMs.Count');
+        function AddDelivery() {
+
+            //$(element).parent().parent().parent().parent().parent().remove();
+            deliveryCount++;
+            var tabbutton = '<button class="tablinks deliveryTabLink" onclick="openTab(event, \'Delivery' + deliveryCount + '\')">Delivery' + deliveryCount + '</button>';
+            $('#tabsDiv').append(tabbutton);
+        var html = '        <div id="Delivery' + deliveryCount + '" class="tabcontent deliveryTab">'+
+            '<div class="box box-block bg-white">                                                                                                       ' +
+        '        <div class="row">                                                                                                                      '+
+        '            <div class="row">                                                                                                                  '+
+        '                <input type="hidden" class="DeliveryID" value="0" />                                                                           '+
+            '                <div class="col-md-4 statusDiv">                                                                                               ' +
+            '<h3>Delivery' + deliveryCount + '</h3>'+
+        '                </div>                                                                                                                         '+
+        '                <div class="col-md-4 btnDiv">                                                                                                  '+
+
+        '                                                                                                                                               '+
+        '                </div>                                                                                                                         '+
+        '                <div class="col-md-4">                                                                                                         '+
+
+        '                </div>                                                                                                                         '+
+        '            </div>                                                                                                                             '+
+        '            <div class="col-md-6">                                                                                                             '+
+            '                <div class="box box-block bg-white">                                                                                           ' +
+            '                    <a href="#" class="btn btn-primary" onclick="AddDelivery(this,event)">Add Delivery</a>                                     ' +
+            '                        <a href="#" class="btn btn-primary" onclick="DeleteDelivery(this,event,0)">Delete Delivery</a>                           ' +
+            '                    <div class="form-group row">                                                                                                   ' +
+            '<div class="col-md-4">                 '+
+        '                        <label for="exampleInputEmail1">Delivery Status</label>                                                                '+
+            '            </div>                     '+
+            '            <div class="col-md-8">     '+
+        '                        <label class="ShipmentStatus" style="color:red">Pending</label>                                                                          '+
+            '            </div>                     '+
+        '                    </div>                                                                                                                     '+
+            '                            <div class="form-group row">                                                                                           ' +
+            '<div class="col-md-4">                 ' +
+        '                                <label for="exampleInputEmail1">Shipping Carrier</label>                                                       '+
+            '            </div>                     ' +
+            '            <div class="col-md-8">     ' +
+
+        '                                <select class="form-control">                                                                                                       '+
+        '                                    <option>Please Select</option>                                                                                          '+
+        '                                </select>                                                                                                      '+
+            '            </div>                     ' +
+        '                            </div>                                                                                                             '+
+            '                            <div class="form-group row">                                                                                           ' +
+            '<div class="col-md-4">                 ' +
+        '                                <label for="exampleInputEmail1">Shipping Cost</label>                                                          '+
+            '            </div>                     ' +
+            '            <div class="col-md-8">     ' +
+        '                                <input type="text" class="form-control ShippingCostPrice" value="" aria-describedby="emailHelp" placeholder="">'+
+            '            </div>                     ' +
+        '                            </div>                                                                                                             '+
+
+            '                            <div class="form-group row">                                                                                           ' +
+            '<div class="col-md-4">                 ' +
+        '                                <label for="exampleInputEmail1">Shipping Service</label>                                                       '+
+            '            </div>                     ' +
+            '            <div class="col-md-8">     ' +
+        '                                <select class="form-control">                                                                                                       '+
+        '                                    <option>Please Select</option>                                                                                          '+
+        '                                </select>                                                                                                      '+
+            '            </div>                     ' +
+        '                            </div>                                                                                                             '+
+            '                            <div class="form-group row">                                                                                           ' +
+            '<div class="col-md-4">                 ' +
+        '                                <label for="exampleInputEmail1">Signature</label>                                                              '+
+            '            </div>                     ' +
+            '            <div class="col-md-8">     ' +
+        '                                <input type="text" class="form-control Signed" value="" aria-describedby="emailHelp" placeholder="">           '+
+            '            </div>                     ' +
+        '                            </div>                                                                                                             '+
+            '                            <div class="form-group row">                                                                                           ' +
+            '<div class="col-md-4">                 ' +
+        '                                <label for="exampleInputEmail1">Shipping Date</label>                                                          '+
+            '            </div>                     ' +
+            '            <div class="col-md-8">     ' +
+        '                                <input type="date" class="form-control ShippingDate" value="" aria-describedby="emailHelp" placeholder="">     '+
+            '            </div>                     ' +
+        '                            </div>                                                                                                             '+
+            '                            <div class="form-group row">                                                                                           ' +
+            '<div class="col-md-4">                 ' +
+        '                                <label for="exampleInputEmail1">Expected Delivery Date</label>                                                 '+
+            '            </div>                     ' +
+            '            <div class="col-md-8">     ' +
+        '                                <input type="date" class="form-control DeliveryDate" value="" aria-describedby="emailHelp" placeholder="">     '+
+            '            </div>                     ' +
+        '                            </div>                                                                                                             '+
+            '                            <div class="form-group row">                                                                                           ' +
+            '<div class="col-md-4">                 ' +
+        '                                <label for="exampleInputEmail1">Redelivery Date</label>                                                        '+
+            '            </div>                     ' +
+            '            <div class="col-md-8">     ' +
+        '                                <input type="date" class="form-control ReDeliveryDate" value="" aria-describedby="emailHelp" placeholder="">   '+
+            '            </div>                     ' +
+        '                            </div>                                                                                                             '+
+            '                    <div class="form-group row">                                                                                                   ' +
+            '<div class="col-md-4">                 ' +
+        '                        <label for="exampleInputEmail1">Delivery Instructions</label>                                                          '+
+            '            </div>                     ' +
+            '            <div class="col-md-8">     ' +
+        '                        <input type="text" class="form-control DeliveryInstructions1" value="" aria-describedby="emailHelp" placeholder="">    '+
+            '            </div>                     ' +
+        '                    </div>                                                                                                                     '+
+        '                </div>                                                                                                                         '+
+        '            </div>                                                                                                                             '+
+        '            <div class="col-md-6">                                                                                                             '+
+            '                <div class="box box-block bg-white overflow-x-auto">                                                                                           ' +
+            '                    <button type="submit" class="btn btn-primary">Save Order</button>                                                          ' +
+            '                    <a href="#" class="btn btn-primary">Validate</a>                                                                           ' +
+        '                    <div class="row">                                                                                                          '+
+        '                        <div class="col-md-6">                                                                                                 '+
+        '                            Delivery Products                                                                                                  '+
+        '                        </div>                                                                                                                 '+
+            '                        <div class="col-md-6">                                                                                                 ' +
+        '                            <a href="#" class="pull-right"><i class="fa fa-plus" aria-hidden="true" onclick="OpenProductModal(false,this,\'Delivery' + deliveryCount + '\')"></i></a>'+
+        '                        </div>                                                                                                                                                   '+
+        '                    </div>                                                                                                                                                       '+
+            '                    <table class="table table-striped table-bordered dataTable productTable Delivery' + deliveryCount + '" data-delid="0">                                   '+
+        '                        <thead>                                                                                                                                                  '+
+        '                            <tr>                                                                                                                                                 '+
+        '                                <th>SKU</th>                                                                                                                                     '+
+        '                                <th>Name</th>                                                                                                                                    '+
+        '                                <th>Qty</th>                                                                                                                                     '+
+        '                                <th>Price</th>                                                                                                                                   '+
+        '                                <th>Stock</th>                                                                                                                                   '+
+        '                                <th></th>                                                                                                                                        '+
+        '                                <th></th>                                                                                                                                        '+
+        '                            </tr>                                                                                                                                                '+
+        '                        </thead>                                                                                                                                                 '+
+        '                        <tbody>                                                                                                                                                  '+
+        '                        </tbody>                                                                                                                                                 '+
+        '                    </table>                                                                                                                                                     '+
+        '                </div>                                                                                                                                                           '+
+        '            </div>                                                                                                                                                               '+
+        '            <div class="col-md-12">                                                                                                                                              '+
+        '                <div class="row">                                                                                                                                                '+
+        '                    <div class="col-md-4">                                                                                                                                       '+
+        '                        <div class="box box-block bg-white">                                                                                                                     '+
+        '                            <h3>Pakcages</h3>                                                                                                                                    '+
+        '                            <table class="table table-striped table-bordered dataTable">                                                                                         '+
+        '                                <thead>                                                                                                                                          '+
+        '                                    <tr>                                                                                                                                         '+
+        '                                        <th></th>                                                                                                                                '+
+        '                                        <th></th>                                                                                                                                '+
+        '                                        <th>N°</th>                                                                                                                              '+
+        '                                        <th>Weight</th>                                                                                                                          '+
+        '                                        <th>Tracking No</th>                                                                                                                     '+
+        '                                    </tr>                                                                                                                                        '+
+        '                                </thead>                                                                                                                                         '+
+        '                                <tbody>                                                                                                                                          '+
+        '                                </tbody>                                                                                                                                         '+
+        '                            </table>                                                                                                                                             '+
+        '                        </div>                                                                                                                                                   '+
+        '                    </div>                                                                                                                                                       '+
+        '                    <div class="col-md-8">                                                                                                                                       '+
+        '                        <div class="box box-block bg-white">                                                                                                                     '+
+        '                            <h3>Documnets </h3>                                                                                                                                  '+
+        '                        </div>                                                                                                                                                   '+
+        '                    </div>                                                                                                                                                       '+
+        '                </div>                                                                                                                                                           '+
+        '            </div>                                                                                                                                                               '+
+        '        </div>                                                                                                                                                                   '+
+        '    </div>                                                                                                                                                                       '+
+        '</div>';
+        $('#frmData').append(html);
+        }
+
+        $(document).ready(function () {
+            var $table1 = jQuery("#table-1");
+            var table1 = $table1.DataTable({
+                "aLengthMenu": [[25, 50, -1], [25, 50, "All"]],
+                "sDom": 'rtlfip'
+            });
+
+            // Setup - add a text input to each footer cell
+            $('#table-1 thead th').each(function () {
+                var title = $('#table-1 thead th').eq($(this).index()).text();
+                if ($(this).index() != 3) {
+                    $(this).html('<input type="text" class="form-control" placeholder="Search ' + title + '" />');
+                }
+            });
+
+            // Apply the search
+            table1.columns().every(function () {
+                var that = this;
+                if (this.index() < 3) {
+                    $('input', this.header()).on('keyup change', function () {
+                        if (that.search() !== this.value) {
+                            that
+                                .search(this.value)
+                                .draw();
+                        }
+                    });
+                }
+            });
+
+            var $table2 = jQuery("#table-2");
+
+            var table2 = $table2.DataTable({
+                "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "sDom": 'rtlfip',
+                'bAutoWidth': false,
+                'aoColumns': [
+                    { sWidth: "10%" },
+                    { sWidth: "20%" },
+                    { sWidth: "15%" },
+                    { sWidth: "15%" },
+                    { sWidth: "10%" },
+                    { sWidth: "10%" },
+                    { sWidth: "10%" },
+                    { sWidth: "10%" },
+                ]
+            });
+
+            // Setup - add a text input to each footer cell
+            $('#table-2 thead th').each(function () {
+                var title = $('#table-2 thead th').eq($(this).index()).text();
+                if ($(this).index() < 7) {
+                    $(this).html('<input type="text" class="form-control" placeholder="Search ' + title + '" />');
+                }
+            });
+
+            // Apply the search
+            table2.columns().every(function () {
+                var that = this;
+                if (this.index() < 7) {
+                    $('input', this.header()).on('keyup change', function () {
+                        if (that.search() !== this.value) {
+                            that
+                                .search(this.value)
+                                .draw();
+                        }
+                    });
+                }
+            });
+        });
+
+            function AddProduct(element) {
+                console.log(editProduct);
+                if (editProduct != null) {
+                    $(editProduct).find('.sku').text($(element).data('sku'));
+                    $(editProduct).find('.product').text($(element).data('product'));
+                    $(editProduct).find('.price').text($(element).data('price'));
+                    $(editProduct).find('.stock').text($(element).data('stock'));
+                    //$(editProduct).find('.outofstock').text($(element).data('outofstock'));
+                    var minus = parseInt($(element).data('stock')) - parseInt($(editProduct).find(".quantityinput").val()) + parseInt($(element).data('reservedstock'));
+                    $(editProduct).find('.minus').text(minus);
+
+                    if (minus >= 0) {
+                        $(editProduct).find('.outofstock').text("0");
+                        $(editProduct).find('.availablestock').text(minus);
+                    } else {
+                        $(editProduct).find('.outofstock').text(minus);
+                        $(editProduct).find('.availablestock').text("0");
+                    }
+                }
+                else {
+                    var deliveryid = $(".deliveryid").text();
+                    var reservedstock = $(element).data('reservedstock') == null ? 0 : $(element).data('reservedstock');
+                    var minus= $(element).data('stock') + $(element).data('reservedstock')
+                    var availablestockdisplay = minus >= 0 ? minus : 0
+                    var outofstock = minus < 0 ? minus : 0;
+                    $("#productTable tbody").append('<tr>\
+                                <td style="text-align:center !important;">\
+                                    <i class="fa fa-pencil" aria-hidden="true" onclick="EditablRow(this, @nDeliveryProductID)"></i>\
+                                </td>\
+                                <td style="text-align:center !important;">\
+                                    <i class="fa fa-trash" aria-hidden="true" onclick="deleteDeliveryProduct(this, @nDeliveryProductID, @nDeliveryID)"></i>\
+                                </td>\
+                                <td class = "0 orderedqty">0</td>\
+                                <td class="0 sku">' + $(element).data('sku') + '</td>\
+                                <td class="0 mpn">' + $(element).data('mpn') + '</td>\
+                        <td class="0 gtin">' + $(element).data('gtin') + '</td>\
+                        <td class="0 brand">' + $(element).data('brand') + '</td>\
+                        <td class="0 productname">' + $(element).data('product') + '</td>\
+                                <td class="0 quantity" contenteditable="false">\
+                                    <input class="quantityinput" type="text" maxlength="4" value="0" style="text-align:center;" />\
+                                </td>\
+                        <td class="0 stock">' + $(element).data('stock') + '</td>\
+                        <td class="0 reservedstock">' + reservedstock + '</td>\
+                        <td class="0 minus" style="display:none">' + minus + '</td>\
+                        <td class="0 availablestock">' + availablestockdisplay + '</td>\
+                        <td class="0 outofstock">' + outofstock + '</td>\
+                        <td class="0 id" style="display:none;">0</td>\
+                        </tr > ');
+                    
+                }
+                $('#productModal').modal('hide');
+
+                $('.quantityinput').change(function () {
+                    var rowEdit = $(this).parent("td").parent('tr');
+                    console.log(rowEdit);
+                    rowEdit.children('.output').text($(this).val())
+                    rowEdit.children('.minus').text(parseInt(rowEdit.children(".stock").text()) - parseInt(rowEdit.children(".output").text()));
+                    var reservedstock = rowEdit.children('.reservedstock').text();
+                    var stock = rowEdit.children('.stock').text();
+                    var quantity = $(this).val();
+                    var minus = parseInt(stock) - parseInt(quantity) + parseInt(reservedstock);
+                    if (minus > 0) {
+                        rowEdit.children('.outofstock').text('0')
+                        rowEdit.children('.availablestock').text(minus);
+                    } else {
+                        rowEdit.children('.outofstock').text(minus);
+                        rowEdit.children('.availablestock').text(0);
+                    }
+                })
+            }
+
+            function SelectCustomer(element) {
+                $('#CustomerID').val($(element).data('id'));
+                $('#CustomerName').val($(element).data('name'));
+                $('#CustomerCompany').val($(element).data('company'));
+                $('#CustomerContactEmail').val($(element).data('email1'));
+                $('#CustomerPhone').val($(element).data('phone1'));
+                $('#CustomerMobilePhone').val($(element).data('mobile'));
+                $('#CustomerAddress1').val($(element).data('address1'));
+                $('#CustomerAddress2').val($(element).data('address2'));
+                $('#CustomerAddress3').val($(element).data('address3'));
+                $('#CustomerCity').val($(element).data('city'));
+                $('#CustomerCountryName').val($(element).data('country'));
+                $('#CustomerPostalCode').val($(element).data('postalcode'));
+                $('#CustomerStateProvince').val($(element).data('stateprovince'));
+                $('#customerModal').modal('hide');
+        }
+
+            function EditablRow(element, nDeliveryID) {
+                OpenProductModal(true, element, nDeliveryID)
+
+
+                $('.quantityinput').change(function () {
+                    var rowEdit = $(this).parent("td").parent('tr');
+                    console.log(rowEdit);
+                    rowEdit.children('.output').text($(this).val())
+                    rowEdit.children('.minus').text(parseInt(rowEdit.children(".stock").text()) - parseInt(rowEdit.children(".output").text()));
+                    var reservedstock = rowEdit.children('.reservedstock').text();
+                    var stock = rowEdit.children('.stock').text();
+                    var quantity = $(this).val();
+                    var minus = parseInt(stock) - parseInt(quantity) + parseInt(reservedstock);
+                    if (minus > 0) {
+                        rowEdit.children('.outofstock').text('0')
+                        rowEdit.children('.availablestock').text(minus);
+                    } else {
+                        rowEdit.children('.outofstock').text(minus);
+                        rowEdit.children('.availablestock').text(0);
+                    }
+                })
+            }
+
+            function deleteDeliveryProduct(element, nDeliveryProductID, nDeliveryID) {
+                if (confirm('Are you sure?')) {
+                    if (nDeliveryProductID == "0") {
+                        console.log($(element).parent().parent().remove());
+                        //$(this).parent("td").parent("tr").remove();
+                        $(element).parent().parent().remove();
+                    } else {
+                        $.ajax({
+                            method: "Post",
+                            url: '/Order/deleteDeliveryProduct',
+                            // contentType: 'application/json',
+                            //update
+                            data: {
+                                id: nDeliveryProductID
+                            },//JSON.stringify(data),
+                            success: function (d) {
+                                UnBlockUI();
+                                location.reload();
+                                alert('Success');
+                            },
+                            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                UnBlockUI();
+                                alert('Something went wrong');
+                            }
+                        });
+                    }
+                }
+            }
+
+            function saveDeliveryProduct(nDeliveryID) {
+                trs = $("#productTable").find("tr");
+
+                var datas = [];
+
+                for (i = 0; i < trs.length; i++) {
+                    if (i == 0) {
+                        continue;
+                    }
+                    tr = trs[i];
+                    console.log(tr);
+                    var strsku = $(tr).find(".sku").text();
+                    var strmpn = $(tr).find(".mpn").text();
+                    var strgtin = $(tr).find(".gtin").text();
+                    var strbrand = $(tr).find(".brand").text();
+                    var strproductname = $(tr).find(".productname").text();
+                    var strquantity = $(tr).find(".quantity").find(".quantityinput").val();
+                    var strstock = $(tr).find(".stock").text();
+                    var stroutput = $(tr).find(".output").text();
+                    var strminus = $(tr).find(".minus").text();
+                    var stroutofstock = $(tr).find(".outofstock").text();
+                    var nDeliveryProductID = $(tr).find(".id").text();
+
+                    onedata = {
+                        nDeliveryProductID: nDeliveryProductID,
+                        strsku: strsku,
+                        strmpn: strmpn,
+                        strgtin: strgtin,
+                        strbrand: strbrand,
+                        strproductname: strproductname,
+                        strquantity: strquantity,
+                        strstock: strstock,
+                        stroutput: stroutput,
+                        strminus: strminus,
+                        stroutofstock: stroutofstock,
+                        nDeliveryID: nDeliveryID
+                    }
+
+                    datas.push(onedata);
+                    console.log(datas);
+                }
+
+                $.ajax({
+                    method: "Post",
+                    url: '/Order/SaveDeliveryProduct',
+                    // contentType: 'application/json',
+                    //update
+                    data: { 'savedeliverydatas': datas },//JSON.stringify(data),
+                    success: function (d) {
+                        UnBlockUI();
+                        location.reload();
+                        alert('Success');
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        UnBlockUI();
+                        alert('Something went wrong');
+                    }
+                });
+            }
+
+            function FieldsEnable(e) {
+                e.preventDefault();
+                $('.orderFields').prop('readonly', false);
+            }
+            function BlockUI() {
+                $("#divLoader").fadeIn("slow");
+            }
+            function UnBlockUI() {
+                $("#divLoader").fadeOut("slow");
+            }
+</script>
+}
+

@@ -1,0 +1,214 @@
+﻿@using AtomicSeller.Helpers
+@using AtomicSeller.Helpers.Razor
+@using AtomicSeller.Helpers.Razor.HtmlExtensions
+
+
+<!-- using AtomicSeller.AccessRights-->
+
+@model AtomicSeller.ViewModels.LabelsViewModel
+
+<!-- LABELS  -->
+ 
+@{
+    ViewBag.Title = new Local().TranslatedMessage("MITFAFlabelsToolStripMenuItem");
+    ViewBag.ShowH2 = false;
+    ViewBag.PageCol = HtmlConsts.Dimens.DefaultPageCol;
+    ViewBag.PageColOffset = HtmlConsts.Dimens.DefaultPageColOffset;
+
+    string MESNULBULKTOOLS = new Local().TranslatedMessage("MESNULBULKTOOLS");
+    string MESNULSHIPPINGRATES = new Local().TranslatedMessage("MESNULSHIPPINGRATES");
+    string MITFSHgenerateLabelsToolStripMenuItem = new Local().TranslatedMessage("MITFSHgenerateLabelsToolStripMenuItem");
+    string REVIEWERRORS = new Local().TranslatedMessage("REVIEWERRORS");
+    string MITFSHDOWNLOADLABELSOFTHEDAY = new Local().TranslatedMessage("MITFSHDOWNLOADLABELSOFTHEDAY");
+    string DISPLAYDOWNLOADLABELS = new Local().TranslatedMessage("DISPLAYDOWNLOADLABELS");
+    string MARKASSHIPPED = new Local().TranslatedMessage("MARKASSHIPPED");
+
+    string CREATEDATE = new Local().TranslatedMessage("CREATEDATE");
+    string LABFHSSHIPPINGSERVICE = new Local().TranslatedMessage("LABFHSSHIPPINGSERVICE");
+    string LABFHSTOBEREVISED = new Local().TranslatedMessage("LABFHSTOBEREVISED");
+    string LABFHSTOTAL = new Local().TranslatedMessage("LABFHSTOTAL");
+    string SHIPPINGRATES = new Local().TranslatedMessage("SHIPPINGRATES");    
+    string MESNULSELECT = new Local().TranslatedMessage("MESNULSELECT");
+
+    string TSTATUS = new Local().TranslatedMessage("TSTATUS");
+    string PSTATUS = new Local().TranslatedMessage("PSTATUS");
+    string ESTATUS = new Local().TranslatedMessage("ESTATUS");
+    string SSTATUS = new Local().TranslatedMessage("SSTATUS");
+    string CSTATUS = new Local().TranslatedMessage("CSTATUS");
+    string WSTATUS = new Local().TranslatedMessage("WSTATUS");
+
+    @*var sessionBag = SessionBag.Instance;*@
+
+}
+
+    <div class="row">
+        <div class="col-md-12">
+
+        @*@if (sessionBag.ProfileID == Licencing.Profiles.SuperAdministrator)*@
+        @*{*@
+<!--
+        <a href="Url.Action("ShippingRates")"
+           class="btn btn-primary"
+           data-toggle="tooltip"
+           title="MESNULSHIPPINGRATES">
+            MESNULSHIPPINGRATES
+            <i class="mdi mdi-checkbox-multiple-marked-outline"></i>
+        </a>
+-->
+        @*}*@
+
+<!--
+    <a href="Url.Action("DEALListE", "Orders", new { ShipmentErrorStatus = "E" })"
+       class="btn btn-primary"
+       data-url="Url.Action("DEALListE", "Orders", new { ShipmentErrorStatus = "E" })"
+       data-toggle="tooltip" title="REVIEWERRORS">
+        REVIEWERRORS
+        <i class="mdi mdi-checkbox-multiple-marked-outline"></i>
+    </a>
+            -->
+
+
+    <!--
+        -->
+
+    </div>
+</div>
+
+@using (Html.PanelWrap(new Local().TranslatedMessage("Shipping Dashboard"), PanelWrapExtension.ContentType.Table))
+{
+    <style type="text/css">
+        .CenterTh th, .CenterTd td, .CenterDiv div {
+            text-align: center;
+        }
+    </style>
+
+        <table class="table table-condensed">
+            <thead>
+                <tr>
+                    <th>@CREATEDATE</th>
+                    <th>@LABFHSSHIPPINGSERVICE</th>
+                    <th>@TSTATUS</th>
+                    <th>@ESTATUS</th>
+                    <th>@PSTATUS</th>
+                    <th>@SSTATUS</th>
+                    <th>@CSTATUS</th>
+                    <th>@WSTATUS</th>
+                    <th>@LABFHSTOTAL</th>
+                    <th>@SHIPPINGRATES</th>
+                    <th>@MITFSHgenerateLabelsToolStripMenuItem</th>
+                    <th>@DISPLAYDOWNLOADLABELS</th>
+                    <th>@Local.StaticTranslatedMessage("MARKASSHIPPED")</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (AtomicSeller.ViewModels.LabelsDashboardViewModel dashboard in Model.Dashboard)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(m => dashboard.CreateDate)</td>
+                        <td>@Html.DisplayFor(m => dashboard.ProductName)</td>
+                        <td>
+                            <div class="CenterDiv">
+                                <a href="@Url.Action("DEALListT", "Orders", new { ShippingServiceID = dashboard.Product_ID, ShipmentStatus = "T", CreateDate = dashboard.CreateDate })">
+                                    @Html.DisplayFor(m => dashboard.T)
+                                </a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="CenterDiv">
+                                <a href="@Url.Action("DEALListE", "Orders", new { ShippingServiceID = dashboard.Product_ID, ShipmentErrorStatus = "E", CreateDate = dashboard.CreateDate })">
+                                    @Html.DisplayFor(m => dashboard.E)
+                                </a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="CenterDiv">
+                                <a href="@Url.Action("DEALListP", "Orders", new { ShippingServiceID = dashboard.Product_ID, ShipmentStatus = "P", CreateDate = dashboard.CreateDate })">
+                                    @Html.DisplayFor(m => dashboard.P)
+                                </a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="CenterDiv">
+                                <a href="@Url.Action("DEALListS", "Orders", new { ShippingServiceID = dashboard.Product_ID, ShipmentStatus = "S", CreateDate = dashboard.CreateDate })">
+                                    @Html.DisplayFor(m => dashboard.S)
+                                </a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="CenterDiv">
+                                <a href="@Url.Action("DEALListC", "Orders", new { ShippingServiceID = dashboard.Product_ID, ShipmentStatus = "C", CreateDate = dashboard.CreateDate })">
+                                    @Html.DisplayFor(m => dashboard.C)
+                                </a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="CenterDiv">
+                                <a href="@Url.Action("DEALListW", "Orders", new { ShippingServiceID = dashboard.Product_ID, ShipmentStatus = "W", CreateDate = dashboard.CreateDate })">
+                                    @Html.DisplayFor(m => dashboard.W)
+                                </a>
+                            </div>
+                        </td>
+                        <td align="center">
+                            <div class="CenterDiv">
+                                @Html.DisplayFor(m => dashboard.CountShipmentID)
+                            </div>
+                        </td>
+                        <td style="text-align:center">
+                            <a class="btn btn-primary btn-xs"
+                               href="@Url.Action("BatchShippingRates", "Labels", new {ShippingServiceID = dashboard.Product_ID, CreateDate = dashboard.CreateDate })"
+                               data-placement="left">
+                                <i class="mdi mdi-square-inc-cash"></i>
+                            </a>
+                        </td>
+                        <td style="text-align:center">
+                            <a class="btn btn-primary btn-xs" 
+                               href="@Url.Action("GenerateLabels", "Labels", new {ShippingServiceID = dashboard.Product_ID, CreateDate = dashboard.CreateDate })"
+                               data-placement="left">
+                                <i class="mdi mdi-barcode"></i>
+                            </a>
+                        </td>
+                        <td style="text-align:center">
+                            <a class="btn btn-primary btn-xs"
+                               href="@Url.Action("DisplayDownloadLabels", "Labels", new {ShippingServiceID = dashboard.Product_ID, CreateDate = dashboard.CreateDate })"
+                               data-url="@Url.Action("DisplayDownloadLabels", "Labels")"
+                               target="_blank"
+                               data-placement="left">
+                                <i class="mdi mdi-package-variant"></i>
+                            </a>
+                        </td>
+                        <td style="text-align:center">
+                            <a class="btn btn-primary btn-xs"
+                               href="@Url.Action("LabelsShippedConfirm", "Labels", new {ShippingServiceID = dashboard.Product_ID, CreateDate = dashboard.CreateDate })"
+                               data-placement="left">
+                                <i class="mdi mdi-checkbox-multiple-marked-outline"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+        }
+    
+        @section scripts
+        {
+            <script>
+                function AddSelectedProducts(element) {
+                    var idProducts = '';
+                    $('.selectProduct').each(function (index, elem) {
+                        if ($(this).is(':checked')) {
+                            idProducts += $(this).attr('name') + '-';
+                        }
+                    });
+                    element.href = $(element).data('url') + '?ids=' + idProducts;
+                }
+            </script>
+        }

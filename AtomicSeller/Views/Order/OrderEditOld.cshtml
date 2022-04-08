@@ -1,0 +1,1348 @@
+﻿@model AtomicSeller.DEALVM
+@{
+    ViewData["Title"] = "Commande";
+    int deliveryTab = 1, deliveryDiv = 1;
+}
+
+<!-- Vendor CSS -->
+<link rel="stylesheet" href="~/vendor/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="~/vendor/themify-icons/themify-icons.css">
+<link rel="stylesheet" href="~/vendor/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="~/vendor/animate.css/animate.min.css">
+<link rel="stylesheet" href="~/vendor/jscrollpane/jquery.jscrollpane.css">
+<link rel="stylesheet" href="~/vendor/waves/waves.min.css">
+@*<link rel="stylesheet" href="~/vendor/chartist/chartist.min.css">*@
+<link rel="stylesheet" href="~/vendor/switchery/dist/switchery.min.css">
+<link rel="stylesheet" href="~/vendor/DataTables/css/dataTables.bootstrap4.min.css">
+<link rel="stylesheet" href="~/vendor/DataTables/Responsive/css/responsive.bootstrap4.min.css">
+<link rel="stylesheet" href="~/vendor/DataTables/Buttons/css/buttons.dataTables.min.css">
+<link rel="stylesheet" href="~/vendor/DataTables/Buttons/css/buttons.bootstrap4.min.css">
+
+<!-- Neptune CSS -->
+<link rel="stylesheet" href="~/vendor/assets/css/core.css">
+
+<style>
+    body {
+        font-family: Arial;
+    }
+
+    /* Style the tab */
+    .tab {
+        overflow: hidden;
+        border: 1px solid #ccc;
+        background-color: #f1f1f1;
+    }
+
+        /* Style the buttons inside the tab */
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 17px;
+        }
+
+            /* Change background color of buttons on hover */
+            .tab button:hover {
+                background-color: #ddd;
+            }
+
+            /* Create an active/current tablink class */
+            .tab button.active {
+                background-color: #ccc;
+            }
+
+    /* Style the tab content */
+    .tabcontent {
+        display: none;
+        padding: 6px 12px;
+        border: 1px solid #ccc;
+        border-top: none;
+        background-color: white;
+    }
+
+    .dataTables_filter {
+        display: none;
+    }
+</style>
+<div class="tab" id="tabsDiv">
+    <button class="tablinks active" id="orderTab" onclick="openTab(event, 'Order')">Order</button>
+    <button class="tablinks" onclick="openTab(event, 'Addresses')">Addresses</button>
+    @foreach (var item in Model.DeliveryVMs)
+    {
+        string delivery = "Delivery" + deliveryTab.ToString();
+        <button class="tablinks deliveryTabLink" onclick="openTab(event, '@delivery')">@delivery</button>
+        deliveryTab++;
+    }
+    @*<button class="tablinks" onclick="openTab(event, 'Delivery1')">Delivery1</button>*@
+</div>
+
+<form id="frmData" name="frmData">
+    <div id="Order" class="tabcontent" style="display: block;">
+        <div class="row">
+            &nbsp;
+            &nbsp;
+            <button class="btn btn-primary" onclick="FieldsEnable(event)">Edit</button>
+            &nbsp;
+            <input type="submit" class="btn btn-primary" value="Save Order" />
+            &nbsp;
+            <button class="btn btn-primary" onclick="OpenCustomerModal(event)">Customer</button>
+        </div>
+            <div class="box box-block bg-white">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="box box-block bg-white">
+                            <input type="hidden" id="OrderID" value="@Model.OrderVMs.First().Order.OrderId" />
+                            <div class="form-group row">
+                                <div class="col-md-4">
+                                    <label for="exampleInputEmail1">Order Status:</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @if (Model.OrderVMs.First().Order.OrderStatus != null)
+                                        if (Model.OrderVMs.First().Order.OrderStatus.ToLower().Trim() == "pending" || Model.OrderVMs.First().Order.OrderStatus.ToLower().Trim() == "incomplete")
+                                        {
+                                            <label style="color:red" id="Order_Status">@Model.OrderVMs.First().Order.OrderStatus</label>
+                                        }
+                                        else if (Model.OrderVMs.First().Order.OrderStatus.ToLower().Trim() == "processing" || Model.OrderVMs.First().Order.OrderStatus.ToLower().Trim() == "complete" || Model.OrderVMs.First().Order.OrderStatus.ToLower().Trim() == "sent")
+                                        {
+                                            <label style="color:darkorange" id="Order_Status">@Model.OrderVMs.First().Order.OrderStatus</label>
+                                        }
+                                        else if (Model.OrderVMs.First().Order.OrderStatus.ToLower().Trim() == "delivered")
+                                        {
+                                            <label style="color:green" id="Order_Status">@Model.OrderVMs.First().Order.OrderStatus</label>
+                                        }
+                                        else
+                                        {
+                                            <label id="Order_Status">@Model.OrderVMs.First().Order.OrderStatus</label>
+                                        }
+                                </div>
+                            </div>
+                            @{
+                                string payment_Date = DateTime.Now.ToString("yyyy-MM-dd");
+                                if (Model.OrderVMs.First().Order.PaymentDate != null)
+                                {
+                                    payment_Date = Model.OrderVMs.First().Order.PaymentDate.ToString("yyyy-MM-dd");
+                                }
+                            }
+                            <div class="form-group row">
+                                <div class="col-md-4">
+                                    <label for="exampleInputEmail1">Create Date</label>
+
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="date" class="form-control orderFields" id="CreateDate" aria-describedby="emailHelp" value="@Model.OrderVMs.First().Order.CreateDate.Value.ToString("yyyy-MM-dd")" placeholder="" readonly required />
+
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-md-4">
+                                    <label for="exampleInputEmail1">Payment Date</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="date" class="form-control orderFields" id="Payment_Date" value="@payment_Date" aria-describedby="emailHelp" placeholder="" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-md-4">
+                                    <label for="exampleInputEmail1">Transaction Price</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control orderFields" id="TransactionPrice" value="@Model.OrderVMs.First().Order.TransactionPrice" aria-describedby="emailHelp" placeholder="" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="box box-block bg-white">
+                            <h2>Customer</h2>
+                            <div class="form-group row">
+                                <div class="col-md-4">
+                                    <label for="exampleInputEmail1">Name<span style="color:red">*</span></label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" id="FullName" value="@Model.Customer.LastName" aria-describedby="emailHelp" placeholder="" readonly required />
+                                </div>
+                                <input type="hidden" id="CustomerID" value="@Model.Customer.CustomerId" />
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-md-4">
+                                    <label for="exampleInputEmail1">Company</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" id="Company" value="@Model.Customer.Company" aria-describedby="emailHelp" placeholder="" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-md-4">
+                                    <label for="exampleInputEmail1">Address 1<span style="color:red">*</span></label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" id="Address1" value="@Model.DeliveryVMs.First().Delivery.RecipAddr0" aria-describedby="emailHelp" placeholder="" readonly required />
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-md-4">
+                                    <label for="exampleInputEmail1">Address 2</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" id="Address2" value="@Model.DeliveryVMs.First().Delivery.RecipAddr1" aria-describedby="emailHelp" placeholder="" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-md-4">
+                                    <label for="exampleInputEmail1">Address 3</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" id="Address3" value="@Model.DeliveryVMs.First().Delivery.RecipAddr2" aria-describedby="emailHelp" placeholder="" readonly>
+                                </div>
+                            </div>
+                                    <div class="form-group row">
+                                        <div class="col-md-4">
+                                            <label for="exampleInputEmail1">Postal Code<span style="color:red">*</span></label>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <input type="text" class="form-control" id="PostalCode" value="@Model.DeliveryVMs.First().Delivery.RecipZip" aria-describedby="emailHelp" placeholder="" readonly required />
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <div class="col-md-4">
+                                            <label for="exampleInputEmail1">City<span style="color:red">*</span></label>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <input type="text" class="form-control" id="City" value="@Model.DeliveryVMs.First().Delivery.RecipCity" aria-describedby="emailHelp" placeholder="" readonly required />
+                                        </div>
+                                    </div>
+                            <div class="form-group row">
+                                <div class="col-md-4">
+                                    <label for="exampleInputEmail1">State/Province</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" id="State_Province" value="@Model.DeliveryVMs.First().Delivery.RecipStateProvinceCode" aria-describedby="emailHelp" placeholder="" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-md-4">
+                                    <label for="exampleInputEmail1">Country Name<span style="color:red">*</span></label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" id="Country" value="@Model.DeliveryVMs.First().Delivery.RecipCountryLib" aria-describedby="emailHelp" placeholder="" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-md-4">
+                                    <label for="exampleInputEmail1">Contact Phone</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" id="Phone1" value="@Model.DeliveryVMs.First().Delivery.RecipPhoneNumber" aria-describedby="emailHelp" placeholder="" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-md-4">
+                                    <label for="exampleInputEmail1">Contact Mobile</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" id="Mobile" value="@Model.DeliveryVMs.First().Delivery.RecipMobileNumber" aria-describedby="emailHelp" placeholder="" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-md-4">
+                                    <label for="exampleInputEmail1">Contact Email</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" id="Email1" value="@Model.DeliveryVMs.First().Delivery.RecipEmail" aria-describedby="emailHelp" placeholder="" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="box box-block bg-white">
+                            <table class="table table-striped table-bordered dataTable">
+                                <thead>
+                                    <tr>
+                                        <th>SKU</th>
+                                        <th>Name</th>
+                                        <th>Qty</th>
+                                        <th>Price</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.OrderVMs.First().OrderProducts)
+                                    {
+                                        <tr>
+                                            <td>@item.Sku</td>
+                                            <td>@item.ProductName</td>
+                                            <td>@item.Quantity</td>
+                                            <td>@item.Price</td>
+                                            <td>@item.SubTotalPriceExclTax</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <div id="Addresses" class="tabcontent">
+        <div class="row">
+            &nbsp;
+            &nbsp;
+            <button class="btn btn-primary" onclick="FieldsEnable(event)">Edit</button>
+            &nbsp;
+            <input type="submit" class="btn btn-primary" value="Save Order" />
+        </div>
+        <div class="box box-block bg-white">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="box box-block bg-white">
+                        <h2>Sender</h2>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="exampleInputEmail1">Contact Name<span style="color:red">*</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="SenderName" value="@Model.DeliveryVMs.First().Delivery.SenderName" aria-describedby="emailHelp" placeholder="" required />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="exampleInputEmail1">Company</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="SenderCompany" value="@Model.DeliveryVMs.First().Delivery.SenderCompanyName" aria-describedby="emailHelp" placeholder="">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="exampleInputEmail1">Address 1<span style="color:red">*</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="SenderAddress1" value="@Model.DeliveryVMs.First().Delivery.SenderAddr0" aria-describedby="emailHelp" placeholder="" required />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="exampleInputEmail1">Address 2</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="SenderAddress2" value="@Model.DeliveryVMs.First().Delivery.SenderAddr1" aria-describedby="emailHelp" placeholder="">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="exampleInputEmail1">Address 3</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="SenderAddress3" value="@Model.DeliveryVMs.First().Delivery.SenderAddr2" aria-describedby="emailHelp" placeholder="">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="exampleInputEmail1">Postal Code<span style="color:red">*</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="SenderPostalCode" value="@Model.DeliveryVMs.First().Delivery.SenderZip" aria-describedby="emailHelp" placeholder="" required />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="exampleInputEmail1">City<span style="color:red">*</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="SenderCity" value="@Model.DeliveryVMs.First().Delivery.SenderCity" aria-describedby="emailHelp" placeholder="" required />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="exampleInputEmail1">State/Province</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="SenderState_Province" value="@Model.DeliveryVMs.First().Delivery.SenderStateProvinceCode" aria-describedby="emailHelp" placeholder="">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="exampleInputEmail1">Country Name<span style="color:red">*</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="SenderCountry" value="@Model.DeliveryVMs.First().Delivery.SenderCountryLib" aria-describedby="emailHelp" placeholder="" required />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="exampleInputEmail1">Contact Phone</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="SenderPhone" value="@Model.DeliveryVMs.First().Delivery.SenderPhoneNumber" aria-describedby="emailHelp" placeholder="">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="exampleInputEmail1">Contact Email</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="SenderEmail" value="@Model.DeliveryVMs.First().Delivery.SenderEmail" aria-describedby="emailHelp" placeholder="">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="box box-block bg-white">
+                        <h2>Recipient</h2>
+                                <div class="form-group row">
+                                    <div class="col-md-4">
+                                        <label for="exampleInputEmail1">Contact Name<span style="color:red">*</span></label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control" id="RecipientName" value="@Model.DeliveryVMs.First().Delivery.RecipLastName" aria-describedby="emailHelp" placeholder="" required />
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-md-4">
+                                        <label for="exampleInputEmail1">Company</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control" id="RecipientCompany" value="@Model.DeliveryVMs.First().Delivery.RecipCompanyName" aria-describedby="emailHelp" placeholder="">
+                                    </div>
+                                </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="exampleInputEmail1">Address 1<span style="color:red">*</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="RecipientAddress1" value="@Model.DeliveryVMs.First().Delivery.RecipAddr0" aria-describedby="emailHelp" placeholder="" required />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="exampleInputEmail1">Address 2</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="RecipientAddress2" value="@Model.DeliveryVMs.First().Delivery.RecipAddr1" aria-describedby="emailHelp" placeholder="">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="exampleInputEmail1">Address 3</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="RecipientAddress3" value="@Model.DeliveryVMs.First().Delivery.RecipAddr2" aria-describedby="emailHelp" placeholder="">
+                            </div>
+                        </div>
+                                <div class="form-group row">
+                                    <div class="col-md-4">
+                                        <label for="exampleInputEmail1">Postal Code<span style="color:red">*</span></label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control" id="RecipientPostalCode" value="@Model.DeliveryVMs.First().Delivery.RecipZip" aria-describedby="emailHelp" placeholder="" required />
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="exampleInputEmail1">City<span style="color:red">*</span></label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control" id="RecipientCity" value="@Model.DeliveryVMs.First().Delivery.RecipCity" aria-describedby="emailHelp" placeholder="" required />
+                                    </div>
+                                </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="exampleInputEmail1">State/Province</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="RecipientState_Province" value="@Model.DeliveryVMs.First().Delivery.RecipStateProvinceCode" aria-describedby="emailHelp" placeholder="">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="exampleInputEmail1">Country Name<span style="color:red">*</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="RecipientCountry" value="@Model.DeliveryVMs.First().Delivery.RecipCountryLib" aria-describedby="emailHelp" placeholder="">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="exampleInputEmail1">Contact Phone</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="RecipientPhone" value="@Model.DeliveryVMs.First().Delivery.RecipPhoneNumber" aria-describedby="emailHelp" placeholder="">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="exampleInputEmail1">Contact Mobile</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="RecipientMobile" value="@Model.DeliveryVMs.First().Delivery.RecipMobileNumber" aria-describedby="emailHelp" placeholder="">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="exampleInputEmail1">Contact Email</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="RecipientEmail" value="@Model.DeliveryVMs.First().Delivery.RecipEmail" aria-describedby="emailHelp" placeholder="">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        @foreach (var DeliveryVM in Model.DeliveryVMs)
+        {
+            string delivery = "Delivery" + deliveryDiv.ToString();
+            deliveryDiv++;
+            <div id="@delivery" class="tabcontent deliveryTab">
+                <div class="row">
+                    &nbsp;
+                    &nbsp;
+                    <button class="btn btn-primary" onclick="FieldsEnable(event)">Edit</button>
+                    &nbsp;
+                    <input type="submit" class="btn btn-primary" value="Save Order" />
+                    &nbsp;
+                    <!--<button type="submit" class="btn btn-primary">Save Order</button>-->
+                    <a href="#" class="btn btn-primary" onclick="AddDelivery(this,event)">Add Delivery</a>
+                    &nbsp;
+                    @if (deliveryDiv != 2)
+                    {
+                        <a href="#" class="btn btn-primary" onclick="DeleteDelivery(this, event,@DeliveryVM.Delivery.DeliveryId)">Delete Delivery</a>
+                    }
+                    <a href="#" class="btn btn-primary">Validate</a>
+                </div>
+
+    <div class="box box-block bg-white">
+        <div class="row">
+            <div class="row">
+                <input type="hidden" class="DeliveryID" value="@DeliveryVM.Delivery.DeliveryId" />
+                <div class="col-md-4 statusDiv">
+                    <h3>@delivery</h3>
+                </div>
+                <div class="col-md-4 btnDiv">
+
+                </div>
+                <div class="col-md-4">
+
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="box box-block bg-white">
+                    <div class="form-group row">
+                        <div class="col-md-4">
+                            <label for="exampleInputEmail1">Delivery Status:</label>
+                        </div>
+                        <div class="col-md-8">
+                            @if (DeliveryVM.Delivery.ShipmentStatus.ToLower().Trim() == "pending" || DeliveryVM.Delivery.ShipmentStatus.ToLower().Trim() == "incomplete")
+                            {
+                                <label style="color:red" class="ShipmentStatus">@DeliveryVM.Delivery.ShipmentStatus</label>
+                            }
+                            else if (DeliveryVM.Delivery.ShipmentStatus.ToLower().Trim() == "processing" || DeliveryVM.Delivery.ShipmentStatus.ToLower().Trim() == "complete" || DeliveryVM.Delivery.ShipmentStatus.ToLower().Trim() == "sent")
+                            {
+                                <label style="color:darkorange" class="ShipmentStatus">@DeliveryVM.Delivery.ShipmentStatus</label>
+                            }
+                            else if (DeliveryVM.Delivery.ShipmentStatus.ToLower().Trim() == "delivered")
+                            {
+                                <label style="color:green" class="ShipmentStatus">@DeliveryVM.Delivery.ShipmentStatus</label>
+                            }
+                            else
+                            {
+                                <label class="ShipmentStatus">@DeliveryVM.Delivery.ShipmentStatus</label>
+                            }
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-md-4">
+                            <label for="exampleInputEmail1">Shipping Carrier</label>
+                        </div>
+                        <div class="col-md-8">
+
+                            <select class="form-control">
+                                <option>Please Select</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-md-4">
+                            <label for="exampleInputEmail1">Shipping Cost</label>
+                        </div>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control ShippingCostPrice" value="@DeliveryVM.Delivery.ShippingCostPrice" aria-describedby="emailHelp" placeholder="">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-md-4">
+                            <label for="exampleInputEmail1">Shipping Service</label>
+                        </div>
+                        <div class="col-md-8">
+                            <select class="form-control">
+                                <option>Please Select</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-md-4">
+                            <label for="exampleInputEmail1">Signature</label>
+                        </div>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control Signed" value="@DeliveryVM.Delivery.Signed" aria-describedby="emailHelp" placeholder="">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-md-4">
+                            <label for="exampleInputEmail1">Shipping Date</label>
+                        </div>
+                        <div class="col-md-8">
+                            @{
+                                string shippingdate = DateTime.Now.ToString("yyyy-MM-dd");
+                                if (DeliveryVM.Delivery.ShippingDate != null)
+                                {
+                                    shippingdate = DeliveryVM.Delivery.ShippingDate.ToString("yyyy-MM-dd");
+                                }
+                                string deliveryDate = DateTime.Now.ToString("yyyy-MM-dd");
+                                if (DeliveryVM.Delivery.DeliveryDate != null)
+                                {
+                                    deliveryDate = DeliveryVM.Delivery.DeliveryDate.Value.ToString("yyyy-MM-dd");
+                                }
+                                string reDeliveryDate = DateTime.Now.ToString("yyyy-MM-dd");
+                            }
+                            <input type="date" class="form-control ShippingDate" value="@shippingdate" aria-describedby="emailHelp" placeholder="">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-md-4">
+                            <label for="exampleInputEmail1">Expected Delivery Date</label>
+                        </div>
+                        <div class="col-md-8">
+                            <input type="date" class="form-control DeliveryDate" value="@deliveryDate" aria-describedby="emailHelp" placeholder="">
+                        </div>
+                    </div>
+
+                    <!--                    <div class="col-md-6">
+                            <div class="form-group row">
+                                <div class="col-md-4">
+                                    <label for="exampleInputEmail1">Redelivery Date</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="date" class="form-control ReDeliveryDate" value="reDeliveryDate" aria-describedby="emailHelp" placeholder="">
+                                </div>
+                            </div>
+                        </div>
+        -->
+                    <div class="form-group row">
+                        <div class="col-md-4">
+                            <label for="exampleInputEmail1">Delivery Instructions</label>
+                        </div>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control DeliveryInstructions1" value="@DeliveryVM.Delivery.DeliveryInstructions1" aria-describedby="emailHelp" placeholder="">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="box box-block bg-white  overflow-x-auto">
+                    <div class="row">
+                        <div class="col-md-6">
+                            Delivery Products
+                        </div>
+                        <div class="col-md-6">
+                            <a href="#" class="pull-right"><i class="fa fa-plus" aria-hidden="true" onclick="OpenProductModal(false,this,@DeliveryVM.Delivery.DeliveryId)"></i></a>
+                        </div>
+                    </div>
+                    <table class="table table-striped table-bordered dataTable productTable" data-delid="@DeliveryVM.Delivery.DeliveryId">
+                        <thead>
+                            <tr>
+                                <th>SKU</th>
+                                <th>Name</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Out of stock</th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            @foreach (var DeliveryProductVM in DeliveryVM.DeliveryProductVMs)
+                            {
+                            <tr class="trProduct" data-id="@DeliveryProductVM.DeliveryProduct.DeliveryProductId" data-delid="@DeliveryProductVM.DeliveryProduct.DeliveryId" data-unitid="@DeliveryProductVM.DeliveryProduct.ItemId">
+                                <td class="sku">@DeliveryProductVM.DeliveryProduct.Sku</td>
+                                <td class="product">@DeliveryProductVM.DeliveryProduct.ProductName</td>
+                                <td class="qty"><input type="text" class="qty" value="@DeliveryProductVM.DeliveryProduct.Quantity" style="width: 30px;" required /> </td>
+                                <td class="price">@DeliveryProductVM.DeliveryProduct.Price</td>
+                                <td class="stock">@DeliveryProductVM.AvailableStock</td>
+                                <td class="OutOfStock">@DeliveryProductVM.OutOfStockQty</td>
+                                <td><a href="#"><i class="fa fa-trash" aria-hidden="true" onclick="RemoveProduct(this,'@DeliveryProductVM.DeliveryProduct.DeliveryProductId')"></i></a></td>
+                                <td><a href="#"><i class="fa fa-pencil" aria-hidden="true" onclick="OpenProductModal(true,this,@DeliveryVM.Delivery.DeliveryId)"></i></a></td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="box box-block bg-white">
+                            <h3>Packages</h3>
+                            <table class="table table-striped table-bordered dataTable">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th></th>
+                                        <th>N°</th>
+                                        <th>Weight</th>
+                                        <th>Tracking No</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var package in DeliveryVM.DeliveryPackages)
+                                    {
+                                        <tr>
+                                            <td><a href="#"><i class="fa fa-trash" aria-hidden="true"></i></a></td>
+                                            <td><a href="#"><i class="fa fa-pencil" aria-hidden="true"></i></a></td>
+                                            <td>@package.Number</td>
+                                            <td>@package.Weight</td>
+                                            <td></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="box box-block bg-white">
+                            <h3>Documents </h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+        }
+</form>
+<!-- Modal -->
+<div class="modal fade" id="customerModal" role="dialog">
+    <div class="modal-dialog modal-lg">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Existing Customer</h4>
+            </div>
+            <div class="modal-body">
+                <div class="overflow-x-auto">
+                    <table class="table table-striped table-bordered dataTable" id="table-1">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Company</th>
+                                <th>City</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var CustomerVM in Model.CustomerPool)
+                            {
+                                <tr>
+                                    <td>@CustomerVM.Fullname</td>
+                                    <td>@CustomerVM.Customer.Company</td>
+                                    <td>@CustomerVM.Customer.City</td>
+                                    <td>
+                                        <a href="#" data-id="@CustomerVM.Customer.CustomerId" data-name="@CustomerVM.Fullname" data-company="@CustomerVM.Customer.Company"
+                                           data-address1="@CustomerVM.Customer.Address0" data-address2="@CustomerVM.Customer.Address1" data-address3="@CustomerVM.Customer.Address2"
+                                           data-city="@CustomerVM.Customer.City" data-email1="@CustomerVM.Customer.Email1"
+                                           data-phone1="@CustomerVM.Customer.Phone1" data-mobile="@CustomerVM.Customer.MobilePhone" data-country="@CustomerVM.Customer.CountryName" data-postalcode="@CustomerVM.Customer.ZipCode"
+                                           data-stateprovince="@CustomerVM.Customer.StateProvince"
+                                           onclick="SelectCustomer(this)">Select</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div class="modal fade" id="productModal" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Existing Products</h4>
+            </div>
+            <div class="modal-body">
+                <div class="overflow-x-auto">
+                    <table class="table table-striped table-bordered dataTable" id="table-2">
+                        <thead>
+                            <tr>
+                                <th>SKU</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Stock</th>
+                                <th>Out Of stock</th>
+                                <th><button>Cancel</button></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.ProductsPool)
+                            {
+                            <tr>
+                                <td>@item.Product.Sku</td>
+                                <td>@item.Product.ProductName</td>
+                                <td>@item.Product.FamilyName</td>
+                                <td>@item.Product.TotalProductsStock</td>
+                                <td>
+                                    <a href="#" data-id="@item.Product.ProductId" data-sku="@item.Product.Sku" data-qty="@item.Product.PriceInclTax"
+                                       data-stock="@item.Product.TotalProductsStock" data-product="@item.Product.ProductName" data-unitid="@item.Product.ProductId" data-price="@item.Product.PriceInclTax"
+                                       onclick="AddProduct(this)">Select</a>
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script>
+    function openTab(evt, cityName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(cityName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+</script>
+
+@section scripts {
+    @*<script type="text/javascript" src="~/vendor/jquery/jquery-1.12.3.min.js"></script>*@
+    <script type="text/javascript" src="~/vendor/tether/js/tether.min.js"></script>
+    <script type="text/javascript" src="~/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="~/vendor/detectmobilebrowser/detectmobilebrowser.js"></script>
+    <script type="text/javascript" src="~/vendor/jscrollpane/jquery.mousewheel.js"></script>
+    <script type="text/javascript" src="~/vendor/jscrollpane/mwheelIntent.js"></script>
+    <script type="text/javascript" src="~/vendor/jscrollpane/jquery.jscrollpane.min.js"></script>
+    <script type="text/javascript" src="~/vendor/waves/waves.min.js"></script>
+    @*<script type="text/javascript" src="~/vendor/chartist/chartist.min.js"></script>*@
+    <script type="text/javascript" src="~/vendor/switchery/dist/switchery.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/js/dataTables.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Responsive/js/dataTables.responsive.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Responsive/js/responsive.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Buttons/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Buttons/js/buttons.bootstrap4.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/JSZip/jszip.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/pdfmake/build/pdfmake.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/pdfmake/build/vfs_fonts.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Buttons/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Buttons/js/buttons.print.min.js"></script>
+    <script type="text/javascript" src="~/vendor/DataTables/Buttons/js/buttons.colVis.min.js"></script>
+
+    <!-- Neptune JS -->
+    @*<script type="text/javascript" src="~/vendor/assets/js/app.js"></script>*@
+    <script type="text/javascript" src="~/vendor/assets/js/demo.js"></script>
+    @*<script type="text/javascript" src="~/vendor/assets/js/tables-datatable.js"></script>*@
+    <script>
+        //$('#orderTab').click();
+        function OpenCustomerModal(e) {
+            e.preventDefault();
+            $('#customerModal').modal('show');
+        }
+        var editProduct = null;
+        var delid = 0;
+        function OpenProductModal(isEdit, element, deliveryID) {
+            if (isEdit) {
+                editProduct = $(element).parent().parent().parent();
+            }
+            else {
+                editProduct = null;
+            }
+            delid = deliveryID;
+            $('#productModal').modal('show');
+        }
+    function RemoveProduct(element, id) {
+        debugger;
+            if (id != 0) {
+                BlockUI();
+                $.ajax({
+                    method: "Post",
+                    url: '/Order/DeleteDeliveryProduct',
+                    // contentType: 'application/json',
+                    data: {id:id},//JSON.stringify(data),
+                    success: function (d) {
+                        $(element).parent().parent().parent().remove();
+                        UnBlockUI();
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        UnBlockUI();
+                        alert('Something went wrong');
+                    }
+                });
+            }
+            else {
+                $(element).parent().parent().parent().remove();
+            }
+
+        }
+        function DeleteDelivery(element, e,deliverid) {
+
+            e.preventDefault();
+            if (deliverid==0) {
+                var id = $(element).parent().parent().parent().parent().parent().attr('id');
+                $('.deliveryTabLink').each(function (e) {
+                    if ($(this).text() == id) {
+                        $(this).remove();
+                        return false;
+                    }
+                });
+                $(element).parent().parent().parent().parent().parent().remove();
+            }
+            else {
+                BlockUI();
+                $.ajax({
+                    method: "Post",
+                    url: '/Order/DeleteDelivery',
+                    // contentType: 'application/json',
+                    data: { id: deliverid },//JSON.stringify(data),
+                    success: function (d) {
+                        var id = $(element).parent().parent().parent().parent().parent().attr('id');
+                        $('.deliveryTabLink').each(function (e) {
+                            if ($(this).text() == id) {
+                                $(this).remove();
+                                return false;
+                            }
+                        });
+                        $(element).parent().parent().parent().parent().parent().remove();
+                        UnBlockUI();
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        UnBlockUI();
+                        alert('Something went wrong');
+                    }
+                });
+            }
+
+        }
+        var deliveryCount = parseInt('@Model.DeliveryVMs.Count');
+    function AddDelivery() {
+
+            //$(element).parent().parent().parent().parent().parent().remove();
+            deliveryCount++;
+            var tabbutton = '<button class="tablinks deliveryTabLink" onclick="openTab(event, \'Delivery' + deliveryCount + '\')">Delivery' + deliveryCount + '</button>';
+            $('#tabsDiv').append(tabbutton);
+        var html = '        <div id="Delivery' + deliveryCount + '" class="tabcontent deliveryTab">'+
+            '<div class="box box-block bg-white">                                                                                                       ' +
+        '        <div class="row">                                                                                                                      '+
+        '            <div class="row">                                                                                                                  '+
+        '                <input type="hidden" class="DeliveryID" value="0" />                                                                           '+
+            '                <div class="col-md-4 statusDiv">                                                                                               ' +
+            '<h3>Delivery' + deliveryCount + '</h3>'+
+        '                </div>                                                                                                                         '+
+        '                <div class="col-md-4 btnDiv">                                                                                                  '+
+
+        '                                                                                                                                               '+
+        '                </div>                                                                                                                         '+
+        '                <div class="col-md-4">                                                                                                         '+
+
+        '                </div>                                                                                                                         '+
+        '            </div>                                                                                                                             '+
+        '            <div class="col-md-6">                                                                                                             '+
+            '                <div class="box box-block bg-white">                                                                                           ' +
+            '                    <a href="#" class="btn btn-primary" onclick="AddDelivery(this,event)">Add Delivery</a>                                     ' +
+            '                        <a href="#" class="btn btn-primary" onclick="DeleteDelivery(this,event,0)">Delete Delivery</a>                           ' +
+            '                    <div class="form-group row">                                                                                                   ' +
+            '<div class="col-md-4">                 '+
+        '                        <label for="exampleInputEmail1">Delivery Status</label>                                                                '+
+            '            </div>                     '+
+            '            <div class="col-md-8">     '+
+        '                        <label class="ShipmentStatus" style="color:red">Pending</label>                                                                          '+
+            '            </div>                     '+
+        '                    </div>                                                                                                                     '+
+            '                            <div class="form-group row">                                                                                           ' +
+            '<div class="col-md-4">                 ' +
+        '                                <label for="exampleInputEmail1">Shipping Carrier</label>                                                       '+
+            '            </div>                     ' +
+            '            <div class="col-md-8">     ' +
+
+        '                                <select class="form-control">                                                                                                       '+
+        '                                    <option>Please Select</option>                                                                                          '+
+        '                                </select>                                                                                                      '+
+            '            </div>                     ' +
+        '                            </div>                                                                                                             '+
+            '                            <div class="form-group row">                                                                                           ' +
+            '<div class="col-md-4">                 ' +
+        '                                <label for="exampleInputEmail1">Shipping Cost</label>                                                          '+
+            '            </div>                     ' +
+            '            <div class="col-md-8">     ' +
+        '                                <input type="text" class="form-control ShippingCostPrice" value="" aria-describedby="emailHelp" placeholder="">'+
+            '            </div>                     ' +
+        '                            </div>                                                                                                             '+
+
+            '                            <div class="form-group row">                                                                                           ' +
+            '<div class="col-md-4">                 ' +
+        '                                <label for="exampleInputEmail1">Shipping Service</label>                                                       '+
+            '            </div>                     ' +
+            '            <div class="col-md-8">     ' +
+        '                                <select class="form-control">                                                                                                       '+
+        '                                    <option>Please Select</option>                                                                                          '+
+        '                                </select>                                                                                                      '+
+            '            </div>                     ' +
+        '                            </div>                                                                                                             '+
+            '                            <div class="form-group row">                                                                                           ' +
+            '<div class="col-md-4">                 ' +
+        '                                <label for="exampleInputEmail1">Signature</label>                                                              '+
+            '            </div>                     ' +
+            '            <div class="col-md-8">     ' +
+        '                                <input type="text" class="form-control Signed" value="" aria-describedby="emailHelp" placeholder="">           '+
+            '            </div>                     ' +
+        '                            </div>                                                                                                             '+
+            '                            <div class="form-group row">                                                                                           ' +
+            '<div class="col-md-4">                 ' +
+        '                                <label for="exampleInputEmail1">Shipping Date</label>                                                          '+
+            '            </div>                     ' +
+            '            <div class="col-md-8">     ' +
+        '                                <input type="date" class="form-control ShippingDate" value="" aria-describedby="emailHelp" placeholder="">     '+
+            '            </div>                     ' +
+        '                            </div>                                                                                                             '+
+            '                            <div class="form-group row">                                                                                           ' +
+            '<div class="col-md-4">                 ' +
+        '                                <label for="exampleInputEmail1">Expected Delivery Date</label>                                                 '+
+            '            </div>                     ' +
+            '            <div class="col-md-8">     ' +
+        '                                <input type="date" class="form-control DeliveryDate" value="" aria-describedby="emailHelp" placeholder="">     '+
+            '            </div>                     ' +
+        '                            </div>                                                                                                             '+
+            '                            <div class="form-group row">                                                                                           ' +
+            '<div class="col-md-4">                 ' +
+        '                                <label for="exampleInputEmail1">Redelivery Date</label>                                                        '+
+            '            </div>                     ' +
+            '            <div class="col-md-8">     ' +
+        '                                <input type="date" class="form-control ReDeliveryDate" value="" aria-describedby="emailHelp" placeholder="">   '+
+            '            </div>                     ' +
+        '                            </div>                                                                                                             '+
+            '                    <div class="form-group row">                                                                                                   ' +
+            '<div class="col-md-4">                 ' +
+        '                        <label for="exampleInputEmail1">Delivery Instructions</label>                                                          '+
+            '            </div>                     ' +
+            '            <div class="col-md-8">     ' +
+        '                        <input type="text" class="form-control DeliveryInstructions1" value="" aria-describedby="emailHelp" placeholder="">    '+
+            '            </div>                     ' +
+        '                    </div>                                                                                                                     '+
+        '                </div>                                                                                                                         '+
+        '            </div>                                                                                                                             '+
+        '            <div class="col-md-6">                                                                                                             '+
+            '                <div class="box box-block bg-white overflow-x-auto">                                                                                           ' +
+            '                    <button type="submit" class="btn btn-primary">Save Order</button>                                                          ' +
+            '                    <a href="#" class="btn btn-primary">Validate</a>                                                                           ' +
+        '                    <div class="row">                                                                                                          '+
+        '                        <div class="col-md-6">                                                                                                 '+
+        '                            Delivery Products                                                                                                  '+
+        '                        </div>                                                                                                                 '+
+            '                        <div class="col-md-6">                                                                                                 ' +
+        '                            <a href="#" class="pull-right"><i class="fa fa-plus" aria-hidden="true" onclick="OpenProductModal(false,this,\'Delivery' + deliveryCount + '\')"></i></a>'+
+        '                        </div>                                                                                                                                                   '+
+        '                    </div>                                                                                                                                                       '+
+            '                    <table class="table table-striped table-bordered dataTable productTable Delivery' + deliveryCount + '" data-delid="0">                                   '+
+        '                        <thead>                                                                                                                                                  '+
+        '                            <tr>                                                                                                                                                 '+
+        '                                <th>SKU</th>                                                                                                                                     '+
+        '                                <th>Name</th>                                                                                                                                    '+
+        '                                <th>Qty</th>                                                                                                                                     '+
+        '                                <th>Price</th>                                                                                                                                   '+
+        '                                <th>Stock</th>                                                                                                                                   '+
+        '                                <th></th>                                                                                                                                        '+
+        '                                <th></th>                                                                                                                                        '+
+        '                            </tr>                                                                                                                                                '+
+        '                        </thead>                                                                                                                                                 '+
+        '                        <tbody>                                                                                                                                                  '+
+        '                        </tbody>                                                                                                                                                 '+
+        '                    </table>                                                                                                                                                     '+
+        '                </div>                                                                                                                                                           '+
+        '            </div>                                                                                                                                                               '+
+        '            <div class="col-md-12">                                                                                                                                              '+
+        '                <div class="row">                                                                                                                                                '+
+        '                    <div class="col-md-4">                                                                                                                                       '+
+        '                        <div class="box box-block bg-white">                                                                                                                     '+
+        '                            <h3>Pakcages</h3>                                                                                                                                    '+
+        '                            <table class="table table-striped table-bordered dataTable">                                                                                         '+
+        '                                <thead>                                                                                                                                          '+
+        '                                    <tr>                                                                                                                                         '+
+        '                                        <th></th>                                                                                                                                '+
+        '                                        <th></th>                                                                                                                                '+
+        '                                        <th>N°</th>                                                                                                                              '+
+        '                                        <th>Weight</th>                                                                                                                          '+
+        '                                        <th>Tracking No</th>                                                                                                                     '+
+        '                                    </tr>                                                                                                                                        '+
+        '                                </thead>                                                                                                                                         '+
+        '                                <tbody>                                                                                                                                          '+
+        '                                </tbody>                                                                                                                                         '+
+        '                            </table>                                                                                                                                             '+
+        '                        </div>                                                                                                                                                   '+
+        '                    </div>                                                                                                                                                       '+
+        '                    <div class="col-md-8">                                                                                                                                       '+
+        '                        <div class="box box-block bg-white">                                                                                                                     '+
+        '                            <h3>Documnets </h3>                                                                                                                                  '+
+        '                        </div>                                                                                                                                                   '+
+        '                    </div>                                                                                                                                                       '+
+        '                </div>                                                                                                                                                           '+
+        '            </div>                                                                                                                                                               '+
+        '        </div>                                                                                                                                                                   '+
+        '    </div>                                                                                                                                                                       '+
+        '</div>';
+        $('#frmData').append(html);
+        }
+        $('#frmData').submit(function (e) {
+
+            e.preventDefault();
+            if ($('#frmData').valid()) {
+                var model = {
+                    OrderID: $('#OrderID').val(),
+                    Order_Status: $('#Order_Status').val(),
+                    CreateDate: $('#CreateDate').val(),
+                    Payment_Date: $('#Payment_Date').val(),
+                    TransactionPrice: $('#TransactionPrice').val(),
+                    SenderName: $('#SenderName').val(),
+                    SenderCompany: $('#SenderCompany').val(),
+                    SenderAddress1: $('#SenderAddress1').val(),
+                    SenderAddress2: $('#SenderAddress2').val(),
+                    SenderAddress3: $('#SenderAddress3').val(),
+                    SenderPostalCode: $('#SenderPostalCode').val(),
+                    SenderCity: $('#SenderCity').val(),
+                    SenderState_Province: $('#SenderState_Province').val(),
+                    SenderCountry: $('#SenderCountry').val(),
+                    SenderPhone: $('#SenderPhone').val(),
+                    SenderMobile: $('#SenderMobile').val(),
+                    SenderEmail: $('#SenderEmail').val(),
+                    RecipientName: $('#RecipientName').val(),
+                    RecipientCompany: $('#RecipientCompany').val(),
+                    RecipientAddress1: $('#RecipientAddress1').val(),
+                    RecipientAddress2: $('#RecipientAddress2').val(),
+                    RecipientAddress3: $('#RecipientAddress3').val(),
+                    RecipientPostalCode: $('#RecipientPostalCode').val(),
+                    RecipientCity: $('#RecipientCity').val(),
+                    RecipientState_Province: $('#RecipientState_Province').val(),
+                    RecipientCountry: $('#RecipientCountry').val(),
+                    RecipientPhone: $('#RecipientPhone').val(),
+                    RecipientMobile: $('#RecipientMobile').val(),
+                    RecipientEmail: $('#RecipientEmail').val(),
+                    CustomerID: $('#CustomerID').val(),
+                    FullName: $('#FullName').val(),
+                    Company: $('#Company').val(),
+                    Email1: $('#Email1').val(),
+                    Phone1: $('#Phone1').val(),
+                    Mobile: $('#Mobile').val(),
+                    Address1: $('#Address1').val(),
+                    Address2: $('#Address2').val(),
+                    Address3: $('#Address3').val(),
+                    City: $('#City').val(),
+                    Country: $('#Country').val(),
+                    PostalCode: $('#PostalCode').val(),
+                    State_Province: $('#State_Province').val(),
+                    orderProductVMs: [],
+                    orderDeliveryVMs: [],
+                    deliveryVMs: []
+                }
+
+                $('.deliveryTab').each(function (e) {
+                    var delivery = {
+                        DeliveryID: $(this).find('.DeliveryID').val(),
+                        ShippingService: $(this).find('.ShippingService').val(),
+                        CarrierServiceKey: $(this).find('.CarrierServiceKey').val(),
+                        ShippingDate: $(this).find('.ShippingDate').val(),
+                        DeliveryDate: $(this).find('.DeliveryDate').val(),
+                        ReDeliveryDate: $(this).find('.ReDeliveryDate').val(),
+                        DeliveryInstructions1: $(this).find('.DeliveryInstructions1').val(),
+                        ShipmentStatus: $(this).find('.ShipmentStatus').val(),
+                        Signed: $(this).find('.Signed').val(),
+                        ShippingCostPrice: $(this).find('.ShippingCostPrice').val(),
+                        deliveryProductVMs: [],
+                        deliveryPackageVMs: [],
+                    }
+                    var table = $(this).find('.productTable tbody');
+                    table.find('tr').each(function (e) {
+                        var $tds = $(this).find('td');
+                        var tablemodel = {
+                            DeliveryProductID: $(this).data('id'),
+                            DeliveryID: $(this).data('delid'),
+                            SKU: $tds.eq(0).text(),
+                            ProductName: $tds.eq(1).text(),
+                            Quantity: $tds.eq(2).find('.qty').val(),
+                            Price: $tds.eq(3).text(),
+                            TotalProductsStock: $tds.eq(4).text(),
+                            ItemID: $(this).data('unitid')
+                        };
+                        delivery.deliveryProductVMs.push(tablemodel);
+                        // do something with productId, product, Quantity
+                    });
+                    model.deliveryVMs.push(delivery);
+                });
+                BlockUI();
+                $.ajax({
+                    method: "Post",
+                    url: '/Order/Save',
+                    // contentType: 'application/json',
+                    data: model,//JSON.stringify(data),
+                    success: function (d) {
+                        //window.location.href = '/Order/Index';
+                        location.reload();
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        UnBlockUI();
+                        alert('Something went wrong');
+                    }
+                });
+            }
+        });
+
+        $(document).ready(function () {
+        var $table1 = jQuery("#table-1");
+        var table1 = $table1.DataTable({
+            "aLengthMenu": [[25, 50, -1], [25, 50, "All"]],
+            "sDom": 'rtlfip'
+        });
+
+        // Setup - add a text input to each footer cell
+        $('#table-1 thead th').each(function () {
+                var title = $('#table-1 thead th').eq($(this).index()).text();
+                if ($(this).index() != 3) {
+                    $(this).html('<input type="text" class="form-control" placeholder="Search ' + title + '" />');
+                }
+        });
+        // Apply the search
+        table1.columns().every(function () {
+            var that = this;
+            if (this.index() < 3) {
+                $('input', this.header()).on('keyup change', function () {
+                    if (that.search() !== this.value) {
+                        that
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            }
+        });
+
+        var $table2 = jQuery("#table-2");
+
+        var table2 = $table2.DataTable({
+            "aLengthMenu": [[25, 50, -1], [25, 50, "All"]],
+            "sDom": 'rtlfip'
+        });
+
+        // Setup - add a text input to each footer cell
+        $('#table-2 thead th').each(function () {
+            var title = $('#table-2 thead th').eq($(this).index()).text();
+            if ($(this).index() < 3) {
+                $(this).html('<input type="text" class="form-control" placeholder="Search ' + title + '" />');
+            }
+        });
+
+        // Apply the search
+        table2.columns().every(function () {
+            var that = this;
+            if (this.index() < 3) {
+                $('input', this.header()).on('keyup change', function () {
+                    if (that.search() !== this.value) {
+                        that
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            }
+        });
+        });
+    function AddProduct(element) {
+        debugger;
+            if (editProduct != null) {
+                $(editProduct).find('.sku').text($(element).data('sku'));
+                $(editProduct).find('.product').text($(element).data('product'));
+                $(editProduct).find('.price').text($(element).data('price'));
+                $(editProduct).find('.stock').text($(element).data('stock'));
+                $(editProduct).find('.outofstock').text($(element).data('outofstock'));
+            }
+            else {
+                var tbody = null;
+                $('.productTable').each(function (e) {
+                    if (delid.toString().startsWith('Delivery')) {
+                        if ($(this).hasClass(delid)) {
+                            tbody = $(this).children('tbody');
+                            return false;
+                        }
+                    }
+                    else {
+                        if (delid == $(this).data('delid')) {
+                            tbody = $(this).children('tbody');
+                            return false;
+                        }
+                    }
+                });
+                if (tbody != null) {
+                    tbody.append('<tr class="trProduct" data-id="0" data-delid="' + delid + '" data-unitid="' + $(element).data('unitid') + '">' +
+                        '      <td>' + $(element).data('sku') + '</td>' +
+                        '      <td>' + $(element).data('product') + '</td>' +
+                        '      <td><input type="text" class="qty" style="width: 30px;" value="" required/> </td>' +
+                        '      <td>' + $(element).data('price') + '</td>' +
+                        '      <td>' + $(element).data('stock') + '</td>' +
+                        '      <td>' + $(element).data('outofstock') + '</td>' +
+                        '      <td><a href="#"><i class="fa fa-trash" aria-hidden="true" onclick="RemoveProduct(this,0)"></i></a></td>' +
+                        '      <td><a href="#"><i class="fa fa-pencil" aria-hidden="true" onclick="OpenProductModal(true,this,' + delid + ')"></i></a></td>' +
+                        '  </tr>');
+                }
+
+            }
+            $('#productModal').modal('hide');
+        }
+        function SelectCustomer(element) {
+            $('#CustomerID').val($(element).data('id'));
+            $('#FullName').val($(element).data('name'));
+            $('#Company').val($(element).data('company'));
+            $('#Email1').val($(element).data('email1'));
+            $('#Phone1').val($(element).data('phone1'));
+            $('#Mobile').val($(element).data('mobile'));
+            $('#Address1').val($(element).data('address1'));
+            $('#Address2').val($(element).data('address2'));
+            $('#Address3').val($(element).data('address3'));
+            $('#City').val($(element).data('city'));
+            $('#Country').val($(element).data('country'));
+            $('#PostalCode').val($(element).data('postalcode'));
+            $('#State_Province').val($(element).data('stateprovince'));
+            $('#customerModal').modal('hide');
+        }
+        function FieldsEnable(e) {
+            e.preventDefault();
+            $('.orderFields').prop('readonly', false);
+    }
+    function BlockUI() {
+        $("#divLoader").fadeIn("slow");
+    }
+    function UnBlockUI() {
+        $("#divLoader").fadeOut("slow");
+    }
+    </script>
+}
+

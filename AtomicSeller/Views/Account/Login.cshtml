@@ -1,0 +1,38 @@
+﻿@using Microsoft.AspNetCore.Mvc
+@using Microsoft.AspNetCore.Html
+@using AtomicSeller.Helpers.Razor.HtmlExtensions
+@using System.Globalization
+@using System.Threading
+
+@model AtomicSeller.ViewModels.LoginViewModel
+
+@{
+    Layout = "~/Views/Partial/_Layout-Login.cshtml";
+    ViewBag.Title = "Authentification";
+
+    string MesnulUser = "Utilisateur";
+    string MesnulPassword = "Mot de passe";
+    string ForgotPassword = "Changer le mot de passe";
+    string MESNULConnect = "Connecter";
+}
+
+@using (Html.BeginForm("Login", "Account", null, FormMethod.Post, true, new { @class = "form-horizontal" }))
+{
+    <h3>@ViewBag.Title</h3>
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true, "")
+
+
+    @Html.TextBoxFor(m => m.Login, new { @class = "form-control", placeholder = MesnulUser })
+    @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = MesnulPassword })
+
+    <a href="@Url.Action("InputEmailRecoverPassword", "Account")"
+       class="btn btn-primary"
+       data-toggle="tooltip"
+       title="@ForgotPassword">
+        <i class="mdi mdi-human"></i>@ForgotPassword
+    </a>
+
+    @Html.SubmitWrap(MESNULConnect, SubmitWrapExtension.DefaultIcon, SubmitWrapExtension.Position.PullRight, SubmitWrapExtension.IconPosition.Right)
+
+}
